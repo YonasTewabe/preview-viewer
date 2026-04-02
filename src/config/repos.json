@@ -1,0 +1,70 @@
+[
+  {
+    "name": "tenant-management-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-tenant-backend"
+  },
+  {
+    "name": "tenant-management-frontend",
+    "tag": "frontend",
+    "jenkinsJob": "preview-tenant-frontend"
+  },
+  {
+    "name": "organizational-structure-and-employee-information",
+    "tag": "backend",
+    "jenkinsJob": "preview-OSEI-backend"
+  },
+  {
+    "name": "organizational-structure-and-employee-information-frontend",
+    "tag": "frontend",
+    "jenkinsJob": "preview-OSEI-frontend"
+  },
+  {
+    "name": "time-and-attendance-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-time-attendance-backend"
+  },
+  {
+    "name": "organizational-development",
+    "tag": "backend",
+    "jenkinsJob": "preview-OD-backend"
+  },
+  {
+    "name": "Notification-and-email-service",
+    "tag": "backend",
+    "jenkinsJob": "preview-email-service"
+  },
+  {
+    "name": "approval-module-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-approval"
+  },
+  {
+    "name": "pep-landing",
+    "tag": "frontend"
+  },
+  {
+    "name": "okr-and-planning-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-OKR-backend"
+  },
+  {
+    "name": "Training-and-learning-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-training-learning-backend"
+  },
+  {
+    "name": "recruitment-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-recruitment-backend"
+  },
+  {
+    "name": "payroll-backend",
+    "tag": "backend",
+    "jenkinsJob": "preview-payroll-backend"
+  },
+  {
+    "name": "pep-file-management",
+    "tag": "backend"
+  }
+]

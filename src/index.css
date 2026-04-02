@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Custom animations */
+
+/* Global dark mode styles */
+body {
+  @apply bg-white dark:bg-neutral-900 text-black dark:text-white;
+}
+
+/* Ensure proper contrast for all text in dark mode */
+.dark {
+  color: white;
+}
+
+.dark * {
+  color: inherit;
+}

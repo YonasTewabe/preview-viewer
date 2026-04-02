@@ -1,0 +1,58 @@
+{
+    "branches": [
+        {
+            "name": "feature/user-authentication",
+            "description": "User authentication and authorization features",
+            "status": "active",
+            "domain_name": "ppii-feature-user-authentication",
+            "port": 7001,
+            "build_result": "success",
+            "build_number": 123,
+            "preview_link": "https://feature-user-auth.ienetworks.co",
+            "jenkins_job_url": "https://pep-admin.ienetworks.co/job/test-preview/123/"
+        },
+        {
+            "name": "bugfix/login-validation",
+            "description": "Fix login form validation issues",
+            "status": "active",
+            "domain_name": "ppii-bugfix-login-validation",
+            "port": 7002,
+            "build_result": "success",
+            "build_number": 124,
+            "preview_link": "https://bugfix-login-validation.ienetworks.co",
+            "jenkins_job_url": "https://pep-admin.ienetworks.co/job/test-preview/124/"
+        },
+        {
+            "name": "hotfix/security-patch",
+            "description": "Critical security vulnerability fix",
+            "status": "active",
+            "domain_name": "ppii-hotfix-security-patch",
+            "port": 7003,
+            "build_result": "failed",
+            "build_number": 125,
+            "preview_link": null,
+            "jenkins_job_url": "https://pep-admin.ienetworks.co/job/test-preview/125/"
+        },
+        {
+            "name": "develop",
+            "description": "Development branch for testing new features",
+            "status": "active",
+            "domain_name": "ppii-develop",
+            "port": 7004,
+            "build_result": "pending",
+            "build_number": null,
+            "preview_link": null,
+            "jenkins_job_url": "https://pep-admin.ienetworks.co/job/test-preview/"
+        }
+    ],
+    "metadata": {
+        "description": "Sample branch data for testing",
+        "totalBranches": 4,
+        "buildStatuses": {
+            "success": 2,
+            "failed": 1,
+            "pending": 1
+        },
+        "createdAt": "2025-01-27T10:00:00.000Z"
+    }
+}
