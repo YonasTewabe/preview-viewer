@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, Layout, Button, Form, message, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
 import WebNodesList from "../components/WebNodesList";
@@ -24,7 +24,11 @@ import { projectDefaultEnvReady } from "../utils/projectDefaultEnvReady";
 
 const { Content } = Layout;
 
-function buildFrontendNodeUpdatePayload(node, serviceName) {
+function buildFrontendNodeUpdatePayload(node, serviceName, branchName) {
+  const br =
+    branchName !== undefined && branchName !== null
+      ? String(branchName)
+      : node.branch_name;
   return {
     service_name: serviceName,
     repository_name: node.repository_name,
@@ -32,7 +36,7 @@ function buildFrontendNodeUpdatePayload(node, serviceName) {
     build_status: node.build_status,
     build_number: node.build_number,
     build_url: node.build_url,
-    branch_name: node.branch_name,
+    branch_name: br,
     domain_name: node.domain_name,
     port: node.port,
     repo_url: node.repo_url,
@@ -45,6 +49,7 @@ function buildFrontendNodeUpdatePayload(node, serviceName) {
 export default function Home({ project }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingNode, setEditingNode] = useState(null);
+  const [deletingNodeId, setDeletingNodeId] = useState(null);
   const { user } = useAuth();
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -69,7 +74,7 @@ export default function Home({ project }) {
     mutate: updateFrontendNodes,
     isPending: isUpdatingFe,
   } = useUpdatePreviewNode();
-  const { mutate: deleteFrontendNodes } = useDeletePreviewNode();
+  const deletePreviewNodeMutation = useDeletePreviewNode();
 
   const createBackendNode = useCreatePreviewService();
   const updateBackendNode = useUpdatePreviewService();
@@ -126,46 +131,63 @@ export default function Home({ project }) {
     setIsModalVisible(true);
   };
 
-  const handleDeleteNode = async (node) => {
-    if (!node?.id) return;
-    const shouldRemoveFromJenkins =
-      nodeHasCompletedBuild(node) && Boolean(node.domain_name);
-    if (shouldRemoveFromJenkins) {
+  const handleDeleteNode = useCallback(
+    async (node) => {
+      if (!node?.id) return;
+      setDeletingNodeId(node.id);
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}jenkins/delete-preview-job`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ DOMAIN_NAME: node.domain_name }),
-          },
-        );
-        const result = await response.json();
-        if (!result.success) {
-          message.warning(
-            result.message || "Jenkins domain cleanup may have failed",
-          );
+        const shouldRemoveFromJenkins =
+          nodeHasCompletedBuild(node) && Boolean(node.domain_name);
+        if (shouldRemoveFromJenkins) {
+          try {
+            const response = await fetch(
+              `${import.meta.env.VITE_BACKEND_URL}jenkins/delete-preview-job`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ DOMAIN_NAME: node.domain_name }),
+              },
+            );
+            const result = await response.json();
+            if (result.success) {
+              message.success(
+                `Domain "${node.domain_name}" removed from Jenkins`,
+              );
+            } else {
+              message.warning(
+                result.message || "Jenkins domain cleanup may have failed",
+              );
+            }
+          } catch (jenkinsError) {
+            console.error("Jenkins deletion error:", jenkinsError);
+            message.warning(
+              "Could not reach Jenkins to delete preview domain; removing node record.",
+            );
+          }
         }
-      } catch {
-        message.warning(
-          "Could not reach Jenkins to delete preview domain; removing service from the database.",
-        );
+        try {
+          if (isApi) {
+            await deleteBackendNode.mutateAsync(node.id);
+          } else {
+            await deletePreviewNodeMutation.mutateAsync(node.id);
+          }
+        } catch (error) {
+          const msg =
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message;
+          if (msg) message.error(msg);
+        }
+      } finally {
+        setDeletingNodeId(null);
       }
-    }
-    try {
-      if (isApi) {
-        await deleteBackendMutation.mutateAsync(node.id);
-      } else {
-        await deleteFrontendNodeAsync(node.id);
-      }
-    } catch (error) {
-      const msg =
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message;
-      if (msg) message.error(msg);
-    }
-  };
+    },
+    [
+      isApi,
+      deleteBackendNode,
+      deletePreviewNodeMutation,
+    ],
+  );
 
   const handleModalOk = () => {
     form.validateFields().then(async (values) => {
@@ -181,20 +203,37 @@ export default function Home({ project }) {
           return;
         }
         const repoSlug = project.repository_url.split("/").slice(4).join("/");
+        const selfId = editingNode?.id;
+        const lc = (s) => String(s ?? "").trim().toLowerCase();
+        const dupName = backendRows.find(
+          (s) =>
+            lc(s.service_name) === lc(name) &&
+            (!selfId || Number(s.id) !== Number(selfId)),
+        );
+        if (dupName) {
+          message.error(
+            `Service name "${name}" already exists. Choose a different name.`,
+          );
+          return;
+        }
+        const dupBranch = backendRows.find(
+          (s) =>
+            lc(s.branch_name) === lc(branch) &&
+            (!selfId || Number(s.id) !== Number(selfId)),
+        );
+        if (dupBranch) {
+          message.error(
+            `Branch "${branch}" is already used by another node in this project.`,
+          );
+          return;
+        }
         try {
           if (editingNode) {
             await updateBackendNode.mutateAsync({
               id: editingNode.id,
-              data: { service_name: name },
+              data: { service_name: name, branch_name: branch },
             });
           } else {
-            const dup = backendRows.find((s) => s.service_name === name);
-            if (dup) {
-              message.error(
-                `Service name "${name}" already exists. Choose a different name.`,
-              );
-              return;
-            }
             const defaultProf = project.env_profiles?.find((p) => p.is_default);
             await createBackendNode.mutateAsync({
               service_name: name,
@@ -218,8 +257,40 @@ export default function Home({ project }) {
         return;
       }
 
+      const webRows = Array.isArray(frontendNodes?.data)
+        ? frontendNodes.data
+        : [];
+      const selfWebId = editingNode?.id;
+      const lcw = (s) => String(s ?? "").trim().toLowerCase();
+      const dupWebName = webRows.find(
+        (n) =>
+          lcw(n.service_name) === lcw(name) &&
+          (!selfWebId || Number(n.id) !== Number(selfWebId)),
+      );
+      if (dupWebName) {
+        message.error(
+          `Service name "${name}" already exists in this project.`,
+        );
+        return;
+      }
+      const dupWebBranch = webRows.find(
+        (n) =>
+          lcw(n.branch_name) === lcw(branch) &&
+          (!selfWebId || Number(n.id) !== Number(selfWebId)),
+      );
+      if (dupWebBranch) {
+        message.error(
+          `Branch "${branch}" is already used by another node in this project.`,
+        );
+        return;
+      }
+
       if (editingNode) {
-        const payload = buildFrontendNodeUpdatePayload(editingNode, name);
+        const payload = buildFrontendNodeUpdatePayload(
+          editingNode,
+          name,
+          branch,
+        );
         updateFrontendNodes(
           {
             id: editingNode.id,
@@ -314,6 +385,7 @@ export default function Home({ project }) {
             onEditNode={handleEditNode}
             onDeleteNode={handleDeleteNode}
             onNodeClick={handleNodeClick}
+            deletingNodeId={deletingNodeId}
           />
         </Card>
       </Content>

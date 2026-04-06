@@ -23,7 +23,8 @@ function isDuplicateProjectApiError(error) {
   return (
     msg.includes('already exists') ||
     msg.includes('already in use') ||
-    msg.includes('already linked')
+    msg.includes('already linked') ||
+    msg.includes('already uses')
   );
 }
 

@@ -9,6 +9,27 @@ import { getDefaultEnvProfile, resolveProfileIdForProject } from "../utils/resol
 
 const router = express.Router();
 
+async function envProfileNameTaken(projectId, nameTrimmed, excludeProfileId) {
+  const want = String(nameTrimmed ?? "").trim().toLowerCase();
+  if (!want) return null;
+  const rows = await ProjectEnvProfile.findAll({
+    where: { project_id: projectId },
+    attributes: ["id", "name"],
+  });
+  for (const r of rows) {
+    if (
+      excludeProfileId != null &&
+      Number(r.id) === Number(excludeProfileId)
+    ) {
+      continue;
+    }
+    if (String(r.name ?? "").trim().toLowerCase() === want) {
+      return "An environment profile with this name already exists for this project.";
+    }
+  }
+  return null;
+}
+
 function normalizeRepositoryUrl(u) {
   return String(u ?? "").trim().replace(/\/+$/, "");
 }
@@ -20,6 +41,7 @@ async function findFirstDuplicateProjectField(payload, excludeProjectId) {
   const nameNorm = String(payload.name ?? "").trim();
   const shortNorm = String(payload.short_code ?? "").trim().toLowerCase();
   const repoNorm = normalizeRepositoryUrl(payload.repository_url);
+  const envNorm = String(payload.env_name ?? "").trim().toLowerCase();
 
   const idFilter =
     excludeProjectId != null && Number.isFinite(Number(excludeProjectId))
@@ -28,7 +50,7 @@ async function findFirstDuplicateProjectField(payload, excludeProjectId) {
 
   const rows = await Project.findAll({
     where: idFilter,
-    attributes: ["name", "short_code", "repository_url"],
+    attributes: ["name", "short_code", "repository_url", "env_name"],
   });
 
   for (const p of rows) {
@@ -53,6 +75,15 @@ async function findFirstDuplicateProjectField(payload, excludeProjectId) {
         error: "This repository URL is already linked to another project.",
       };
     }
+    if (
+      envNorm &&
+      String(p.env_name ?? "").trim().toLowerCase() === envNorm
+    ) {
+      return {
+        field: "env_name",
+        error: "Another project already uses this environment name.",
+      };
+    }
   }
   return null;
 }
@@ -74,6 +105,9 @@ function mapUniqueConstraintError(error) {
   }
   if (path === "repository_url" || /repository_url/i.test(msg)) {
     return "This repository URL is already linked to another project.";
+  }
+  if (path === "env_name" || /\benv_name\b/i.test(msg)) {
+    return "Another project already uses this environment name.";
   }
   return "This value is already in use by another project.";
 }
@@ -244,15 +278,33 @@ router.post("/", async (req, res) => {
     const tag =
       tagNorm === 'backend' || tagNorm === 'api' ? 'backend' : 'frontend';
 
+    const nameNorm = String(name).trim();
+    const shortNorm = String(short_code).trim().toLowerCase();
+    const repoNorm = normalizeRepositoryUrl(repository_url);
     const envDisplay = String(env_name).trim();
+    const envNorm = envDisplay.toLowerCase();
+
+    const dup = await findFirstDuplicateProjectField(
+      {
+        name: nameNorm,
+        short_code: shortNorm,
+        repository_url: repoNorm,
+        env_name: envNorm,
+      },
+      null,
+    );
+    if (dup) {
+      return res.status(400).json({ error: dup.error, field: dup.field });
+    }
+
     const project = await Project.create({
-      name,
+      name: nameNorm,
       description,
-      repository_url,
+      repository_url: repoNorm,
       tag,
-      env_name: envDisplay.toLowerCase(),
+      env_name: envNorm,
       created_by: Number.parseInt(created_by, 10) || 1,
-      short_code,
+      short_code: shortNorm,
     });
 
     const slug = await uniqueSlugForProject(
@@ -273,8 +325,14 @@ router.post("/", async (req, res) => {
     res.status(201).json(sanitizeProject(createdFull));
   } catch (error) {
     console.error("Error creating project:", error);
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ error: "Project name already exists" });
+    const mapped = mapUniqueConstraintError(error);
+    if (mapped) {
+      return res.status(400).json({ error: mapped });
+    }
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(400).json({
+        error: "This value is already in use by another project.",
+      });
     }
     res.status(500).json({ error: "Failed to create project" });
   }
@@ -307,12 +365,17 @@ router.put("/:id", async (req, res) => {
       repository_url != null
         ? normalizeRepositoryUrl(repository_url)
         : normalizeRepositoryUrl(project.repository_url);
+    const envNorm =
+      env_name != null && String(env_name).trim() !== ""
+        ? String(env_name).trim().toLowerCase()
+        : String(project.env_name ?? "").trim().toLowerCase();
 
     const dup = await findFirstDuplicateProjectField(
       {
         name: nameNorm,
         short_code: shortCodeNorm,
         repository_url: repoNorm,
+        env_name: envNorm,
       },
       project.id,
     );
@@ -507,6 +570,11 @@ router.post("/:id/env-profiles", async (req, res) => {
     name = String(name ?? "").trim();
     if (!name) return res.status(400).json({ error: "name is required" });
 
+    const profileNameTaken = await envProfileNameTaken(project.id, name, null);
+    if (profileNameTaken) {
+      return res.status(400).json({ error: profileNameTaken, field: "name" });
+    }
+
     let slug =
       slugRaw != null && String(slugRaw).trim()
         ? slugifyEnvProfileLabel(String(slugRaw).trim(), project.id)
@@ -566,7 +634,16 @@ router.patch("/:id/env-profiles/:profileId", async (req, res) => {
     const { name, slug: slugRaw, is_default: isDefaultRaw } = req.body || {};
     const updates = {};
     if (name != null && String(name).trim() !== "") {
-      updates.name = String(name).trim();
+      const nextName = String(name).trim();
+      const profileNameTaken = await envProfileNameTaken(
+        project.id,
+        nextName,
+        row.id,
+      );
+      if (profileNameTaken) {
+        return res.status(400).json({ error: profileNameTaken, field: "name" });
+      }
+      updates.name = nextName;
     }
     if (slugRaw != null && String(slugRaw).trim() !== "") {
       const s = await uniqueSlugForProject(

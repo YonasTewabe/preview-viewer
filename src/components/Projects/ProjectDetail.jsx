@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Card,
   Button,
@@ -154,6 +154,18 @@ const ProjectDetail = () => {
     queryFn: () => getProjectById(projectId),
   });
 
+  const serverDefaultProfileId = useMemo(() => {
+    const list = Array.isArray(data?.env_profiles) ? data.env_profiles : [];
+    return list.find((p) => p.is_default)?.id ?? null;
+  }, [data?.env_profiles]);
+
+  const [draftDefaultProfileId, setDraftDefaultProfileId] = useState(null);
+
+  useEffect(() => {
+    if (data?.id == null) return;
+    setDraftDefaultProfileId(serverDefaultProfileId);
+  }, [data?.id, serverDefaultProfileId]);
+
   if (isLoading) {
     return <ProjectDetailSkeleton />;
   }
@@ -184,15 +196,22 @@ const ProjectDetail = () => {
   } = data;
 
   const envProfiles = Array.isArray(envProfilesRaw) ? envProfilesRaw : [];
-  const defaultProfileId = envProfiles.find((p) => p.is_default)?.id ?? null;
 
-  const handleDefaultProfileChange = async (profileId) => {
-    if (profileId == null || String(profileId) === String(defaultProfileId)) {
-      return;
-    }
+  const defaultProfileSelectValue =
+    draftDefaultProfileId ?? serverDefaultProfileId ?? undefined;
+
+  const defaultProfileDirty =
+    String(defaultProfileSelectValue ?? "") !==
+    String(serverDefaultProfileId ?? "");
+
+  const saveDefaultProfile = async () => {
+    const chosen =
+      draftDefaultProfileId ?? serverDefaultProfileId ?? undefined;
+    if (chosen == null || chosen === "") return;
+    if (String(chosen) === String(serverDefaultProfileId ?? "")) return;
     setSettingDefaultProfile(true);
     try {
-      await projectService.patchEnvProfile(projectId, profileId, {
+      await projectService.patchEnvProfile(projectId, chosen, {
         is_default: true,
       });
       const pidKey = queryKeyPart(projectId);
@@ -380,25 +399,37 @@ const ProjectDetail = () => {
           }
         >
           {envProfiles.length > 0 ? (
-            <div
-              className="mb-4 flex flex-wrap items-center gap-3"
-              style={{ alignItems: "center" }}
-            >
+            <div className="mb-4 flex max-w-2xl flex-col gap-2">
               <span className="text-sm font-medium text-gray-700">
                 Default profile
               </span>
-              <Select
-                style={{ minWidth: 260 }}
-                placeholder="Choose default profile"
-                loading={settingDefaultProfile}
-                disabled={settingDefaultProfile}
-                value={defaultProfileId ?? undefined}
-                options={envProfiles.map((p) => ({
-                  value: p.id,
-                  label: p.is_default ? `${p.name} (default)` : p.name,
-                }))}
-                onChange={(v) => void handleDefaultProfileChange(v)}
-              />
+              <span className="text-xs text-gray-500">
+                Choose which profile new nodes use by default, then click{" "}
+                <span className="font-medium">Save default</span>.
+              </span>
+              <Space wrap align="start">
+                <Select
+                  style={{ minWidth: 260 }}
+                  placeholder="Choose default profile"
+                  disabled={settingDefaultProfile}
+                  value={defaultProfileSelectValue}
+                  options={envProfiles.map((p) => ({
+                    value: p.id,
+                    label: p.is_default ? `${p.name} (default)` : p.name,
+                  }))}
+                  onChange={(v) => setDraftDefaultProfileId(v)}
+                />
+                <Button
+                  type="primary"
+                  loading={settingDefaultProfile}
+                  disabled={
+                    !defaultProfileDirty || settingDefaultProfile
+                  }
+                  onClick={() => void saveDefaultProfile()}
+                >
+                  Save default
+                </Button>
+              </Space>
             </div>
           ) : null}
           <div

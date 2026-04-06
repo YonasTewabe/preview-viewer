@@ -566,6 +566,7 @@ router.post("/", async (req, res) => {
       project_id,
       service_name,
       null,
+      branch_name,
     );
     if (!nameCheck.ok) {
       return res.status(400).json({ error: nameCheck.error, field: nameCheck.field });
@@ -650,10 +651,15 @@ router.put("/:id", async (req, res) => {
       service_name !== undefined && service_name !== null
         ? service_name
         : webNode.service_name;
+    const nextBranch =
+      branch_name !== undefined && branch_name !== null
+        ? branch_name
+        : webNode.branch_name;
     const nameCheck = await checkNodeServiceNameUniqueInProject(
       targetProjectId,
       nextServiceName,
       webNode.id,
+      nextBranch,
     );
     if (!nameCheck.ok) {
       return res.status(400).json({ error: nameCheck.error, field: nameCheck.field });

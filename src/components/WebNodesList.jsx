@@ -19,7 +19,12 @@ import {
   MoreOutlined,
 } from "@ant-design/icons";
 
-function NodeRowActions({ node, onEditNode, onDeleteNode }) {
+function NodeRowActions({
+  node,
+  onEditNode,
+  onDeleteNode,
+  deletingThis,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -39,9 +44,9 @@ function NodeRowActions({ node, onEditNode, onDeleteNode }) {
           size="small"
           type="primary"
           danger
-          onClick={async () => {
+          onClick={() => {
             setDeleteOpen(false);
-            await onDeleteNode(node);
+            void onDeleteNode(node);
           }}
         >
           Delete
@@ -99,6 +104,7 @@ function NodeRowActions({ node, onEditNode, onDeleteNode }) {
               type="text"
               icon={<MoreOutlined />}
               aria-label="Node actions"
+              disabled={deletingThis}
               onClick={(e) => e.stopPropagation()}
             />
           </Dropdown>
@@ -118,6 +124,7 @@ export default function WebNodesList({
   onEditNode,
   onDeleteNode,
   onNodeClick,
+  deletingNodeId = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -218,13 +225,25 @@ export default function WebNodesList({
           <div
             style={{ display: "flex", flexDirection: "column", gap: "12px" }}
           >
-            {paginatedNodes.map((node) => (
+            {paginatedNodes.map((node) => {
+              const deletingThis =
+                deletingNodeId != null &&
+                Number(node.id) === Number(deletingNodeId);
+
+              return (
               <Card
                 key={node.id}
-                className="shadow-sm"
-                onClick={() => onNodeClick(node)}
-                hoverable
+                className="shadow-sm relative"
+                onClick={() => {
+                  if (!deletingThis) onNodeClick(node);
+                }}
+                hoverable={!deletingThis}
               >
+                {deletingThis ? (
+                  <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-[inherit] bg-white/70">
+                    <Spin tip="Deleting…" />
+                  </div>
+                ) : null}
                 {/* Name + branch (match FrontendConfig service detail fields) */}
                 <div
                   style={{
@@ -304,10 +323,12 @@ export default function WebNodesList({
                     node={node}
                     onEditNode={onEditNode}
                     onDeleteNode={onDeleteNode}
+                    deletingThis={deletingThis}
                   />
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {totalNodes > pageSize && (

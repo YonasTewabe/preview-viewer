@@ -582,8 +582,7 @@ export default function NodeConfigView({
   }, [projectEnvVarsResp?.env_profiles]);
 
   const savedProfileDisplayName = useMemo(() => {
-    if (selectedNode?.envProfile?.name)
-      return selectedNode.envProfile.name;
+    if (selectedNode?.envProfile?.name) return selectedNode.envProfile.name;
     const list = projectEnvVarsResp?.env_profiles;
     if (!Array.isArray(list)) return null;
     if (savedExplicitProfileId != null) {
@@ -604,7 +603,7 @@ export default function NodeConfigView({
     const payloadId =
       nodeProfileId != null && Number.isFinite(Number(nodeProfileId))
         ? Number(nodeProfileId)
-        : projectEnvVarsResp?.profile_id ?? defaultEnvProfileId;
+        : (projectEnvVarsResp?.profile_id ?? defaultEnvProfileId);
     if (payloadId == null || !Number.isFinite(Number(payloadId))) {
       message.error("Could not resolve profile to save.");
       return;
@@ -905,7 +904,7 @@ export default function NodeConfigView({
       // Fetch envs fresh (avoid empty arrays from not-yet-loaded queries)
       const [projRes, nodeRes] = await Promise.all([
         fetch(
-            projectEnvVarsFetchUrl(
+          projectEnvVarsFetchUrl(
             selectedNode?.project_id,
             savedResolvedProfileIdForDeploy,
           ),
@@ -1134,7 +1133,7 @@ export default function NodeConfigView({
       // Fetch envs fresh (avoid empty arrays from not-yet-loaded queries)
       const [projRes, nodeRes] = await Promise.all([
         fetch(
-            projectEnvVarsFetchUrl(
+          projectEnvVarsFetchUrl(
             selectedNode?.project_id,
             savedResolvedProfileIdForDeploy,
           ),
@@ -1431,13 +1430,7 @@ export default function NodeConfigView({
             <Popconfirm
               title={`Delete “${selectedNode?.service_name}” permanently?`}
               description={
-                <div style={{ maxWidth: 320 }}>
-                  {nodeHasCompletedBuild(selectedNode)
-                    ? selectedNode?.domain_name
-                      ? "A successful preview is on record and a domain is configured. Jenkins will remove the preview domain, then the database row is permanently deleted."
-                      : "A successful preview is on record but no domain is on file. Only the database row will be removed (no Jenkins call)."
-                    : "No successful preview deploy is on record yet. Only the database row will be permanently deleted."}
-                </div>
+                "This will permanently delete the node and all associated data. This action cannot be undone."
               }
               okText="Delete"
               cancelText="Cancel"
@@ -1678,7 +1671,11 @@ export default function NodeConfigView({
                   <>
                     <Text
                       type="secondary"
-                      style={{ display: "block", marginBottom: 10, fontSize: 13 }}
+                      style={{
+                        display: "block",
+                        marginBottom: 10,
+                        fontSize: 13,
+                      }}
                     >
                       Select a profile to preview its base variables in the
                       table below. Click <strong>Save profile</strong> to store
@@ -1948,8 +1945,7 @@ export default function NodeConfigView({
                 }
                 dataSource={buildHistoryRows}
                 locale={{
-                  emptyText:
-                    "No builds recorded yet. Deploy and rebuild runs (success or failure) are listed here.",
+                  emptyText: "No builds recorded yet.",
                 }}
                 columns={[
                   {

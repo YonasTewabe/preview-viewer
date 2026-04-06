@@ -43,7 +43,11 @@ function duplicateFieldFeedback(data) {
       low.includes("repository url is already")
     )
       field = "repository_url";
-    else if (low.includes("environment name")) field = "env_name";
+    else if (
+      low.includes("environment name") ||
+      (low.includes("another project") && low.includes("environment"))
+    )
+      field = "env_name";
     else if (
       low.includes("name already") ||
       low.includes("with this name")

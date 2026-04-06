@@ -102,20 +102,38 @@ export default function ApiNodesTab({
 
       const repoSlug = project.repository_url.split("/").slice(4).join("/");
 
+      const selfId = editingService?.id;
+      const lc = (s) => String(s ?? "").trim().toLowerCase();
+      const dupName = servicesArray.find(
+        (s) =>
+          lc(s.service_name) === lc(name) &&
+          (!selfId || Number(s.id) !== Number(selfId)),
+      );
+      if (dupName) {
+        message.error(
+          `Service name "${name}" already exists. Choose a different name.`,
+        );
+        return;
+      }
+      const dupBranch = servicesArray.find(
+        (s) =>
+          lc(s.branch_name) === lc(branch) &&
+          (!selfId || Number(s.id) !== Number(selfId)),
+      );
+      if (dupBranch) {
+        message.error(
+          `Branch "${branch}" is already used by another node in this project.`,
+        );
+        return;
+      }
+
       try {
         if (editingService) {
           await updateBackendNode.mutateAsync({
             id: editingService.id,
-            data: { service_name: name },
+            data: { service_name: name, branch_name: branch },
           });
         } else {
-          const dup = servicesArray.find((s) => s.service_name === name);
-          if (dup) {
-            message.error(
-              `Service name "${name}" already exists. Choose a different name.`,
-            );
-            return;
-          }
           await createBackendNode.mutateAsync({
             service_name: name,
             branch_name: branch,

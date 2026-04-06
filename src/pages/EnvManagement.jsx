@@ -366,8 +366,7 @@ const EnvManagement = () => {
         destroyOnClose
       >
         <Typography.Paragraph type="secondary" className="!mb-3 text-sm">
-          Name this deployment context (e.g. Staging, Production). Open the
-          profile from the list after creating it to add variables.
+          Open the profile from the list after creating it to add variables.
         </Typography.Paragraph>
         <Input
           placeholder="Profile name"
