@@ -59,7 +59,12 @@ export const useProjects = () => {
     try {
       const newProject = await projectService.createProject(projectData);
       setProjects((prev) => [newProject, ...prev]);
-      await invalidateAndRefetchActive(queryClient, ["projects"], ["project"]);
+      await invalidateAndRefetchActive(
+        queryClient,
+        ["stats"],
+        ["projects"],
+        ["project"],
+      );
       message.success("Project created successfully!");
       return newProject;
     } catch (error) {
@@ -89,6 +94,7 @@ export const useProjects = () => {
       const pid = queryKeyPart(projectData.id);
       await invalidateAndRefetchActive(
         queryClient,
+        ["stats"],
         ["projects"],
         ["project"],
         ...(pid != null ? [["project", pid]] : []),
@@ -122,6 +128,7 @@ export const useProjects = () => {
       const pid = queryKeyPart(projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["stats"],
         ["projects"],
         ["project"],
         ...(pid != null ? [["project", pid]] : []),
@@ -206,6 +213,7 @@ export const useProjects = () => {
       const pid = queryKeyPart(projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["stats"],
         ["projects"],
         ["project"],
         ...(pid != null ? [["project", pid]] : []),

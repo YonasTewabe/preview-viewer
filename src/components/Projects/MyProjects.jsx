@@ -19,7 +19,6 @@ import {
   SearchOutlined,
   ProjectOutlined,
   CheckSquareOutlined,
-  DatabaseOutlined,
 } from "@ant-design/icons";
 import StatsCard from "../Dashboard/StatsCard";
 import dayjs from "dayjs";
@@ -27,6 +26,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import AddProjectModal from "./AddProjectModal";
 import ProjectCard from "../Profile/ProjectCard";
 import { useProjects } from "../../hooks/useProjects";
+import { useQuery } from "@tanstack/react-query";
+import { projectService } from "../../services/projectService";
 
 dayjs.extend(relativeTime);
 
@@ -47,6 +48,10 @@ const MyProjects = () => {
   const [editingProject, setEditingProject] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  const { data: stats = {} } = useQuery({
+    queryKey: ["stats"],
+    queryFn: () => projectService.getStats(),
+  });
 
   const filteredProjects = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -144,6 +149,27 @@ const MyProjects = () => {
           </Button>
         </div>
       </div>
+
+      <Row gutter={[24, 24]} className="mb-2">
+        <Col xs={24} sm={12} lg={6}>
+          <StatsCard
+            title="Projects"
+            value={Number(stats.totalProjects) || projects.length}
+            icon={<ProjectOutlined />}
+            color="blue"
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <StatsCard
+            title="Environment profiles"
+            value={Number(stats.totalEnvProfiles) || 0}
+            icon={<CheckSquareOutlined />}
+            color="blue"
+            loading={loading}
+          />
+        </Col>
+      </Row>
 
       <Card className="mb-4 border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

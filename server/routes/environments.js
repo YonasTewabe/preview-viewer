@@ -1,8 +1,10 @@
 import express from "express";
 import { Environment, Project, ProjectEnvProfile } from "../models/index.js";
 import { resolveProfileIdForProject } from "../utils/resolveProjectEnvProfile.js";
+import { refreshStatsAfterMutation } from "../services/statsService.js";
 
 const router = express.Router();
+router.use(refreshStatsAfterMutation);
 
 const toDto = (row) => ({
   id: row.id,

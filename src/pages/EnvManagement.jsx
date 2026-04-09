@@ -85,6 +85,10 @@ const EnvManagement = () => {
     queryKey: ["projects"],
     queryFn: () => projectService.getProjects(),
   });
+  const { data: stats = {} } = useQuery({
+    queryKey: ["stats"],
+    queryFn: () => projectService.getStats(),
+  });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -109,11 +113,10 @@ const EnvManagement = () => {
     return list;
   }, [filtered]);
 
-  const totalProducts = projects.length;
-  const totalProfiles = useMemo(
-    () => projects.reduce((n, p) => n + profilesFor(p).length, 0),
-    [projects],
-  );
+  const totalProducts = Number(stats.totalProjects) || projects.length;
+  const totalProfiles =
+    Number(stats.totalEnvProfiles) ||
+    projects.reduce((n, p) => n + profilesFor(p).length, 0);
 
   if (isLoading) {
     return <EnvManagementSkeleton />;
@@ -171,6 +174,7 @@ const EnvManagement = () => {
       closeAddProfileModal();
       await invalidateAndRefetchActive(
         queryClient,
+        ["stats"],
         ["projects"],
         ...(pid != null ? [["project", pid]] : []),
         ...(pid != null ? [["envProfiles", pid]] : []),
@@ -197,6 +201,7 @@ const EnvManagement = () => {
       const pid = queryKeyPart(projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["stats"],
         ["projects"],
         ...(pid != null ? [["project", pid]] : []),
         ...(pid != null ? [["envProfiles", pid]] : []),

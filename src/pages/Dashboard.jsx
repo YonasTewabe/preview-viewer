@@ -6,62 +6,14 @@ import {
   CloseCircleOutlined,
   ClockCircleOutlined,
   ProjectOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import StatsCard from "../components/Dashboard/StatsCard";
 import { useAuth } from "../contexts/AuthContext";
-import projectService, { api } from "../services/projectService";
+import { api } from "../services/projectService";
 import { useTheme } from "../contexts/ThemeContext";
 
 const { Title, Text } = Typography;
-
-function normalizeBuildStatus(raw) {
-  const s = String(raw ?? "")
-    .trim()
-    .toLowerCase();
-  if (s === "success" || s === "successful") return "success";
-  if (s === "failed" || s === "failure" || s === "fail" || s === "unstable")
-    return "failed";
-  if (s === "building" || s === "in_progress" || s === "in progress")
-    return "building";
-  if (s === "cancelled" || s === "canceled" || s === "aborted")
-    return "cancelled";
-  if (s === "not_built" || s === "not built") return "pending";
-  if (!s) return "pending";
-  return s;
-}
-
-/** DB + Jenkins payloads: prefer `build_status`, then legacy/alt fields. */
-function resolveNodeBuildStatus(service) {
-  if (!service || typeof service !== "object") return "pending";
-  const raw =
-    service.build_status ??
-    service.buildStatus ??
-    service.build_result ??
-    service.buildResult;
-  return normalizeBuildStatus(raw);
-}
-
-function hasDeployedPreviewUrl(service) {
-  if (!service || typeof service !== "object") return false;
-  const link =
-    service.preview_link ??
-    service.previewLink ??
-    service.default_url ??
-    service.defaultUrl ??
-    service.deployment_url ??
-    service.deploymentUrl;
-  return link != null && String(link).trim() !== "";
-}
-
-/**
- * Stats card counts: same idea as `nodeHasCompletedBuild` — DB `build_status`
- * can stay `pending` while a preview URL exists after a successful deploy.
- */
-function effectiveBuildStatusForStats(service) {
-  const st = resolveNodeBuildStatus(service);
-  if (st === "pending" && hasDeployedPreviewUrl(service)) return "success";
-  return st;
-}
 
 function pickServices(payload) {
   if (!payload || typeof payload !== "object") return [];
@@ -81,7 +33,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalProjects: 0,
-    activeBuilds: 0,
+    totalNodes: 0,
     successfulBuilds: 0,
     failedBuilds: 0,
   });
@@ -118,37 +70,26 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      const [projects, webRes, apiRes] = await Promise.all([
-        projectService.getProjects().catch(() => []),
+      const [statsRes, webRes, apiRes] = await Promise.all([
+        api.get("stats").catch(() => ({ data: null })),
         api.get("preview-nodes").catch(() => ({ data: {} })),
         api.get("preview-services/summary").catch(() => ({
           data: { services: [] },
         })),
       ]);
 
-      const projectList = Array.isArray(projects) ? projects : [];
+      const statsPayload =
+        statsRes?.data && typeof statsRes.data === "object" ? statsRes.data : {};
       const webServices = pickServices(webRes.data).filter(
         (s) => !s.is_deleted,
       );
       const apiServices = pickServices(apiRes.data);
 
-      const allNodes = [...webServices, ...apiServices];
-
-      const activeBuilds = allNodes.filter(
-        (s) => resolveNodeBuildStatus(s) === "building",
-      ).length;
-      const successfulBuilds = allNodes.filter(
-        (s) => effectiveBuildStatusForStats(s) === "success",
-      ).length;
-      const failedBuilds = allNodes.filter(
-        (s) => effectiveBuildStatusForStats(s) === "failed",
-      ).length;
-
       setStats({
-        totalProjects: projectList.length,
-        activeBuilds,
-        successfulBuilds,
-        failedBuilds,
+        totalProjects: Number(statsPayload.totalProjects) || 0,
+        totalNodes: Number(statsPayload.totalNodes) || 0,
+        successfulBuilds: Number(statsPayload.successfulBuilds) || 0,
+        failedBuilds: Number(statsPayload.failedBuilds) || 0,
       });
 
       const recentBuildsList = [];
@@ -206,7 +147,7 @@ const Dashboard = () => {
       setRecentBuilds([]);
       setStats({
         totalProjects: 0,
-        activeBuilds: 0,
+        totalNodes: 0,
         successfulBuilds: 0,
         failedBuilds: 0,
       });
@@ -240,9 +181,9 @@ const Dashboard = () => {
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={12} lg={6}>
           <StatsCard
-            title="Active Builds"
-            value={stats.activeBuilds}
-            icon={<ClockCircleOutlined />}
+            title="Total Preview Nodes"
+            value={stats.totalNodes}
+            icon={<AppstoreOutlined />}
             color="blue"
             loading={loading}
           />

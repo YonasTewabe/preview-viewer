@@ -7,8 +7,10 @@ import { getDefaultEnvProfile } from "../utils/resolveProjectEnvProfile.js";
 import { checkNodeServiceNameUniqueInProject } from "../utils/checkNodeServiceNameUniqueInProject.js";
 import { allocateNodePort } from "../utils/allocateNodePort.js";
 import { deriveNodeDomainSlug } from "../utils/deriveNodeDomainSlug.js";
+import { refreshStatsAfterMutation } from "../services/statsService.js";
 
 const router = express.Router();
+router.use(refreshStatsAfterMutation);
 
 const API_SVC = { role: "api_service", is_deleted: false };
 

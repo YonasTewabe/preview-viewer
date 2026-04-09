@@ -17,6 +17,7 @@ import {
   jenkinsArtifactUrl,
 } from "../config/jenkinsServer.js";
 import { deletePreviewDomainViaJenkins } from "../services/jenkinsDeletePreviewDomain.js";
+import { refreshStatsAfterMutation } from "../services/statsService.js";
 
 /** Must match Jenkins job `parameters { string… }` — only these are sent to buildWithParameters. */
 const JENKINS_PREVIEW_JOB_PARAM_NAMES = [
@@ -53,6 +54,7 @@ function buildPreviewJobJenkinsForm({
 }
 
 const router = express.Router();
+router.use(refreshStatsAfterMutation);
 
 const JENKINS_TRIGGER_TOKEN = process.env.JENKINS_TRIGGER_TOKEN || "domain";
 

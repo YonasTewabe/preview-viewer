@@ -87,6 +87,11 @@ export const projectService = {
     return response.data;
   },
 
+  getStats: async () => {
+    const response = await api.get("/stats");
+    return response.data;
+  },
+
   // Update project status
   updateProjectStatus: async (id, status) => {
     const response = await api.patch(`/projects/${id}/status`, { status });

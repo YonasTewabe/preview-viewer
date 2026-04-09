@@ -16,6 +16,7 @@ import emailRoutes from "./routes/emails.js";
 import branchRoutes from "./routes/branches.js";
 import urlConfigsRoutes from "./routes/urlconfigs.js";
 import environmentsRoutes from "./routes/environments.js";
+import statsRoutes from "./routes/stats.js";
 
 import { testConnection } from "./config/database.js";
 import { initAssociations, syncDatabase } from "./models/index.js";
@@ -76,6 +77,7 @@ app.use("/api/emails", emailRoutes);
 app.use("/api/branches", branchRoutes);
 app.use("/api/urlconfigs", urlConfigsRoutes);
 app.use("/api", environmentsRoutes);
+app.use("/api/stats", statsRoutes);
 
 // ✅ Error handling middleware
 app.use((err, req, res, _next) => {

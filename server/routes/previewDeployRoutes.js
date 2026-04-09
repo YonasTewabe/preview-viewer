@@ -16,8 +16,10 @@ import {
 import { allocateNodePort } from "../utils/allocateNodePort.js";
 import { deriveNodeDomainSlug } from "../utils/deriveNodeDomainSlug.js";
 import { checkNodeServiceNameUniqueInProject } from "../utils/checkNodeServiceNameUniqueInProject.js";
+import { refreshStatsAfterMutation } from "../services/statsService.js";
 
 const router = express.Router();
+router.use(refreshStatsAfterMutation);
 
 const FE = { role: "frontend", is_deleted: false };
 /** Web + API preview service nodes: same deploy/env/build/update/delete by id */

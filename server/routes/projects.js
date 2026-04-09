@@ -7,8 +7,10 @@ import {
   uniqueSlugForProject,
 } from "../utils/envProfileSlug.js";
 import { getDefaultEnvProfile, resolveProfileIdForProject } from "../utils/resolveProjectEnvProfile.js";
+import { refreshStatsAfterMutation } from "../services/statsService.js";
 
 const router = express.Router();
+router.use(refreshStatsAfterMutation);
 
 async function envProfileNameTaken(projectId, nameTrimmed, excludeProfileId) {
   const want = String(nameTrimmed ?? "").trim().toLowerCase();
