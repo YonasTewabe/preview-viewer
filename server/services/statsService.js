@@ -121,6 +121,22 @@ async function computeStatsSnapshot() {
 
 export async function refreshSystemStats() {
   const snapshot = await computeStatsSnapshot();
+  const existing = await Stats.findOne({ where: { key_name: GLOBAL_STATS_KEY } });
+  const existingDto = existing ? toStatsDto(existing) : null;
+
+  // Keep successful/failed build totals cumulative; deleting nodes should not
+  // reduce historical totals shown on the dashboard.
+  if (existingDto) {
+    snapshot.successfulBuilds = Math.max(
+      existingDto.successfulBuilds,
+      snapshot.successfulBuilds,
+    );
+    snapshot.failedBuilds = Math.max(
+      existingDto.failedBuilds,
+      snapshot.failedBuilds,
+    );
+  }
+
   await Stats.upsert(toStatsPayload(snapshot));
   const latest = await Stats.findOne({ where: { key_name: GLOBAL_STATS_KEY } });
   return toStatsDto(latest);

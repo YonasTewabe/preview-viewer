@@ -70,7 +70,6 @@ const MainLayout = ({ children }) => {
         className={`min-h-screen ${isDark ? "bg-neutral-950" : "bg-[#f5f5f5]"}`}
         style={{
           marginLeft: isMobile ? 0 : collapsed ? 80 : 280,
-          transition: "margin-left 0.2s",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
@@ -98,9 +97,7 @@ const MainLayout = ({ children }) => {
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                 className={`!inline-flex !size-10 shrink-0 !items-center !justify-center rounded-lg text-zinc-700 transition-colors dark:text-zinc-300 ${headerCtrlHover}`}
                 onClick={() =>
-                  isMobile
-                    ? setMobileNavOpen(true)
-                    : setCollapsed((c) => !c)
+                  isMobile ? setMobileNavOpen(true) : setCollapsed((c) => !c)
                 }
                 aria-label={
                   isMobile

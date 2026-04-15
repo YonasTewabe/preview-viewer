@@ -272,8 +272,12 @@ const ProjectDetail = () => {
         <Card className="md:col-span-12 col-span-1">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h1 className="truncate text-xl sm:text-2xl font-semibold">{name}</h1>
-              <h4 className="mt-1 break-words text-sm text-gray-500">{description}</h4>
+              <h1 className="truncate text-xl sm:text-2xl font-semibold">
+                {name}
+              </h1>
+              <h4 className="mt-1 break-words text-sm text-gray-500">
+                {description}
+              </h4>
             </div>
 
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
@@ -400,13 +404,6 @@ const ProjectDetail = () => {
         >
           {envProfiles.length > 0 ? (
             <div className="mb-4 flex max-w-2xl flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700">
-                Default profile
-              </span>
-              <span className="text-xs text-gray-500">
-                Choose which profile new nodes use by default, then click{" "}
-                <span className="font-medium">Save default</span>.
-              </span>
               <Space wrap align="start">
                 <Select
                   style={{ minWidth: 220, width: "100%" }}
@@ -425,7 +422,7 @@ const ProjectDetail = () => {
                   disabled={!defaultProfileDirty || settingDefaultProfile}
                   onClick={() => void saveDefaultProfile()}
                 >
-                  Save default
+                  Update default
                 </Button>
               </Space>
             </div>

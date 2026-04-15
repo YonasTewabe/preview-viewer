@@ -16,7 +16,12 @@ import { useTheme } from "../../contexts/ThemeContext";
 const { Sider } = Layout;
 const { Text } = Typography;
 
-const Sidebar = ({ collapsed, isMobile = false, mobileOpen = false, onMobileClose }) => {
+const Sidebar = ({
+  collapsed,
+  isMobile = false,
+  mobileOpen = false,
+  onMobileClose,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -59,6 +64,9 @@ const Sidebar = ({ collapsed, isMobile = false, mobileOpen = false, onMobileClos
       onClick: () => navigate("/environments"),
     },
     {
+      type: "divider",
+    },
+    {
       key: "/users",
       icon: <TeamOutlined style={{ fontSize: "18px" }} />,
       label: "User management",
@@ -69,6 +77,9 @@ const Sidebar = ({ collapsed, isMobile = false, mobileOpen = false, onMobileClos
       icon: <SettingOutlined style={{ fontSize: "18px" }} />,
       label: "System settings",
       onClick: () => navigate("/settings"),
+    },
+    {
+      type: "divider",
     },
     {
       key: "/trash",
@@ -181,29 +192,31 @@ const Sidebar = ({ collapsed, isMobile = false, mobileOpen = false, onMobileClos
   return (
     <>
       {!isMobile ? (
-    <Sider
-      trigger={null}
-      collapsible
-      collapsed={collapsed}
-      collapsedWidth={80}
-      width={280}
-      className={`flex flex-col border-r shadow-[1px_0_0_0_rgba(0,0,0,0.04)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)] ${
-        isDark ? "!bg-zinc-950 border-zinc-800" : "!bg-white border-gray-200/80"
-      }`}
-      style={{
-        overflow: "hidden",
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {sidebarContent}
+        <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          collapsedWidth={80}
+          width={280}
+          className={`flex flex-col border-r shadow-[1px_0_0_0_rgba(0,0,0,0.04)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)] ${
+            isDark
+              ? "!bg-zinc-950 border-zinc-800"
+              : "!bg-white border-gray-200/80"
+          }`}
+          style={{
+            overflow: "hidden",
+            height: "100vh",
+            position: "fixed",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {sidebarContent}
 
-      <style>{`
+          <style>{`
         .sidebar-menu .ant-menu-item {
           height: 44px !important;
           line-height: 44px !important;
@@ -331,7 +344,7 @@ const Sidebar = ({ collapsed, isMobile = false, mobileOpen = false, onMobileClos
           display: none !important;
         }
       `}</style>
-    </Sider>
+        </Sider>
       ) : (
         <Drawer
           placement="left"
