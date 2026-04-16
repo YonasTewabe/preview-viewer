@@ -33,9 +33,7 @@ function hasDeployedPreviewUrl(node) {
     node.preview_link ??
     node.previewLink ??
     node.default_url ??
-    node.defaultUrl ??
-    node.deployment_url ??
-    node.deploymentUrl;
+    node.defaultUrl;
   return link != null && String(link).trim() !== "";
 }
 
@@ -99,7 +97,7 @@ async function computeStatsSnapshot() {
     }),
     Node.findAll({
       where: { is_deleted: false },
-      attributes: ["build_status", "preview_link", "default_url", "deployment_url"],
+      attributes: ["build_status", "preview_link", "default_url"],
       raw: true,
     }),
     NodeBuild.findAll({

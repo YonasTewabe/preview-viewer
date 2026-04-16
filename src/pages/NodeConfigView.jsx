@@ -71,7 +71,7 @@ function projectEnvVarsFetchUrl(projectId, profileId) {
 }
 
 function previewNodeEnvVarsUrl(nodeId, profileId) {
-  const path = `${import.meta.env.VITE_BACKEND_URL}preview-nodes/${nodeId}/env-vars`;
+  const path = `${import.meta.env.VITE_BACKEND_URL}nodes/${nodeId}/env-vars`;
   if (profileId == null || profileId === "") {
     return path;
   }
@@ -80,7 +80,7 @@ function previewNodeEnvVarsUrl(nodeId, profileId) {
 
 function previewNodeEnvVarKeyUrl(nodeId, key, profileId) {
   const enc = encodeURIComponent(key);
-  const base = `${import.meta.env.VITE_BACKEND_URL}preview-nodes/${nodeId}/env-vars/${enc}`;
+  const base = `${import.meta.env.VITE_BACKEND_URL}nodes/${nodeId}/env-vars/${enc}`;
   if (profileId == null || profileId === "") {
     return base;
   }
@@ -458,7 +458,7 @@ export default function NodeConfigView({
     enabled: Boolean(id) && isPreviewServiceNode,
     queryFn: async () => {
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}preview-nodes/${id}/build-history`,
+        `${import.meta.env.VITE_BACKEND_URL}nodes/${id}/build-history`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -713,7 +713,7 @@ export default function NodeConfigView({
     if (role === "api_branch") {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}branches/${selectedNode.id}`,
+          `${import.meta.env.VITE_BACKEND_URL}nodes/${selectedNode.id}`,
           {
             method: "DELETE",
             headers: {
@@ -949,9 +949,7 @@ export default function NodeConfigView({
               service_name: selectedNode?.service_name,
               repository_name: selectedNode?.repository_name,
               branch_name: selectedNode?.branch_name,
-              jenkins_job: selectedNode?.jenkins_job,
               build_status: result.buildStatus,
-              build_url: selectedNode?.build_url,
               port: result.artifactData?.port ?? selectedNode?.port,
               repo_url: selectedNode?.repo_url,
               build_number: result.buildNumber,

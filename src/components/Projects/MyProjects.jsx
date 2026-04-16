@@ -18,6 +18,7 @@ import {
   PlusOutlined,
   SearchOutlined,
   ProjectOutlined,
+  AppstoreOutlined,
   CheckSquareOutlined,
 } from "@ant-design/icons";
 import StatsCard from "../Dashboard/StatsCard";
@@ -153,6 +154,15 @@ const MyProjects = () => {
       </div>
 
       <Row gutter={[24, 24]} className="mb-2">
+        <Col xs={24} sm={12} lg={6}>
+          <StatsCard
+            title="Total Preview Nodes"
+            value={Number(stats.totalNodes) || 0}
+            icon={<AppstoreOutlined />}
+            color="blue"
+            loading={loading}
+          />
+        </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatsCard
             title="Projects"

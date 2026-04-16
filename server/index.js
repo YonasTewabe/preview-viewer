@@ -8,12 +8,9 @@ import jenkinsRoutes from "./routes/jenkins.js";
 import nodesSampleFileRoutes from "./routes/nodesSampleFileRoutes.js";
 import projectsRoutes from "./routes/projects.js";
 import usersRoutes from "./routes/users.js";
-import previewDeployRoutes from "./routes/previewDeployRoutes.js";
-import previewServicesRoutes from "./routes/previewServicesRoutes.js";
-import nodeByIdRoutes from "./routes/nodeByIdRoutes.js";
+import nodesRoutes from "./routes/nodes.js";
 import authRoutes from "./routes/auth.js";
 import emailRoutes from "./routes/emails.js";
-import branchRoutes from "./routes/branches.js";
 import environmentsRoutes from "./routes/environments.js";
 import statsRoutes from "./routes/stats.js";
 import configurationRoutes from "./routes/configuration.js";
@@ -51,12 +48,7 @@ app.use(
 
 app.use(express.json());
 
-// ✅ API Routes — preview nodes (deploy/env/build + frontend-role create)
-app.use("/api/preview-nodes", previewDeployRoutes);
-// ✅ API Routes — preview service parents (api_service CRUD, import/export)
-app.use("/api/preview-services", previewServicesRoutes);
-/** Unified GET (and legacy redirects use this) */
-app.use("/api/node", nodeByIdRoutes);
+app.use("/api/nodes", nodesRoutes);
 
 app.use("/api/github", githubRoutes);
 app.use("/api", buildRoutes);
@@ -65,17 +57,8 @@ app.use("/api/nodes-static-json", nodesSampleFileRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/users", usersRoutes);
 
-// Legacy path aliases (same routers)
-app.use("/api/nodes/backend", previewServicesRoutes);
-app.use("/api/nodes/frontend", previewDeployRoutes);
-app.use("/api/preview-nodes/web", previewDeployRoutes);
-app.use("/api/preview-nodes/api", previewServicesRoutes);
-app.use("/api/backendnodes", previewServicesRoutes);
-app.use("/api/frontendnodes", previewDeployRoutes);
-
 app.use("/api/auth", authRoutes);
 app.use("/api/emails", emailRoutes);
-app.use("/api/branches", branchRoutes);
 app.use("/api", environmentsRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/configuration", configurationRoutes);

@@ -6,8 +6,8 @@ import {
   queryKeyPart,
 } from "../utils/invalidateQueries";
 
-/** Parent api_service rows: list/create/update/delete, import/export, branches. */
-const PREVIEW_SERVICES_PATH = "preview-services";
+/** Unified nodes API for api_service and api_branch roles. */
+const PREVIEW_SERVICES_PATH = "nodes";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -17,13 +17,25 @@ const api = axios.create({
 });
 
 const previewServicesClient = {
-  getAll: () => api.get(PREVIEW_SERVICES_PATH),
+  getAll: () =>
+    api.get(PREVIEW_SERVICES_PATH, {
+      params: { role: "api_service", includeBranches: true },
+    }),
   getById: (id) => api.get(`${PREVIEW_SERVICES_PATH}/${id}`),
   getByProjectId: (projectId) =>
-    api.get(`${PREVIEW_SERVICES_PATH}/project/${projectId}`),
+    api.get(PREVIEW_SERVICES_PATH, {
+      params: { projectId, role: "api_service", includeBranches: true },
+    }),
   create: (data) => api.post(PREVIEW_SERVICES_PATH, { data }),
-  update: (id, data) => api.put(`${PREVIEW_SERVICES_PATH}/${id}`, data),
-  deleteAll: () => api.delete(PREVIEW_SERVICES_PATH),
+  update: (id, data) => api.patch(`${PREVIEW_SERVICES_PATH}/${id}`, data),
+  deleteAll: async () => {
+    const res = await api.get(PREVIEW_SERVICES_PATH, {
+      params: { role: "api_service" },
+    });
+    const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+    await Promise.all(rows.map((row) => api.delete(`${PREVIEW_SERVICES_PATH}/${row.id}`)));
+    return { data: { message: "All preview services deleted" } };
+  },
   deleteById: (id) => api.delete(`${PREVIEW_SERVICES_PATH}/${id}`),
 };
 
@@ -39,7 +51,10 @@ export const usePreviewServicesByProjectId = (projectId) => {
   const projectKey = queryKeyPart(projectId);
   return useQuery({
     queryKey: ["previewServicesByProject", projectKey],
-    queryFn: () => previewServicesClient.getByProjectId(projectId),
+    queryFn: async () => {
+      const res = await previewServicesClient.getByProjectId(projectId);
+      return { ...res, data: res?.data?.data ?? [] };
+    },
     enabled: projectKey != null && projectKey !== "",
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -75,10 +90,11 @@ export const useCreatePreviewService = () => {
       const pk = queryKeyPart(projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewServicesCatalog"],
         ["previewServicesByProject"],
         ...(pk != null ? [["previewServicesByProject", pk]] : []),
-        ["previewNodesByProject"],
       );
       message.success("Service created");
     },
@@ -106,6 +122,8 @@ export const useUpdatePreviewService = () => {
       const nid = queryKeyPart(variables?.id);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewServicesCatalog"],
         ["previewServicesByProject"],
         ...(pk != null ? [["previewServicesByProject", pk]] : []),
@@ -113,10 +131,10 @@ export const useUpdatePreviewService = () => {
           ? [
               ["previewServiceById", nid],
               ["previewNode", nid],
+              ["node", nid],
               ["nodeBuildHistory", nid],
             ]
           : []),
-        ["previewNodesByProject"],
       );
       message.success("Service updated");
     },
@@ -145,10 +163,10 @@ export const useDeletePreviewService = () => {
       }
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewServicesCatalog"],
         ["previewServicesByProject"],
-        ["previewNodesByProject"],
-        ["previewNodesCatalog"],
       );
       message.success("Preview service deleted successfully");
     },
@@ -172,9 +190,10 @@ export const useDeleteAllPreviewServices = () => {
     onSuccess: async () => {
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewServicesCatalog"],
         ["previewServicesByProject"],
-        ["previewNodesByProject"],
       );
       message.success("All preview services deleted successfully");
     },
@@ -202,7 +221,7 @@ export const useImportPreviewServices = () => {
     }) => {
       const items = services ?? backendServices ?? [];
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/import/bulk`,
+        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/ops/import/bulk`,
         {
           method: "POST",
           headers: {
@@ -228,10 +247,11 @@ export const useImportPreviewServices = () => {
       const pk = queryKeyPart(variables?.projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewServicesCatalog"],
         ["previewServicesByProject"],
         ...(pk != null ? [["previewServicesByProject", pk]] : []),
-        ["previewNodesByProject"],
       );
     },
   });
@@ -241,8 +261,8 @@ export const useExportPreviewServices = () => {
   return useMutation({
     mutationFn: async ({ projectId = null } = {}) => {
       const url = projectId
-        ? `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/export/project/${projectId}`
-        : `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/export`;
+        ? `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/ops/export/all?projectId=${encodeURIComponent(projectId)}`
+        : `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/ops/export/all`;
 
       const response = await fetch(url);
 
@@ -280,13 +300,13 @@ export const useCreateBranch = () => {
   return useMutation({
     mutationFn: async (branchData) => {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}branches`,
+        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(branchData),
+          body: JSON.stringify({ ...branchData, role: "api_branch" }),
         },
       );
 
@@ -301,15 +321,17 @@ export const useCreateBranch = () => {
       const nid = queryKeyPart(variables?.node_id);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ...(nid != null ? [["branches", nid]] : []),
         ["branches"],
         ["previewServicesByProject"],
         ["previewServicesCatalog"],
-        ["previewNodesByProject"],
         ...(nid != null
           ? [
               ["previewNode", nid],
               ["previewServiceById", nid],
+              ["node", nid],
             ]
           : []),
       );
@@ -323,9 +345,9 @@ export const useUpdateBranch = () => {
   return useMutation({
     mutationFn: async ({ id, data }) => {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}branches/${id}`,
+        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
@@ -344,15 +366,17 @@ export const useUpdateBranch = () => {
       const nid = queryKeyPart(variables.data?.node_id ?? variables.node_id);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ...(nid != null ? [["branches", nid]] : []),
         ["branches"],
         ["previewServicesByProject"],
         ["previewServicesCatalog"],
-        ["previewNodesByProject"],
         ...(nid != null
           ? [
               ["previewNode", nid],
               ["previewServiceById", nid],
+              ["node", nid],
             ]
           : []),
       );
@@ -366,7 +390,7 @@ export const useDeleteBranch = () => {
   return useMutation({
     mutationFn: async (branchId) => {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}branches/${branchId}`,
+        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}/${branchId}`,
         {
           method: "DELETE",
         },
@@ -382,10 +406,11 @@ export const useDeleteBranch = () => {
     onSuccess: async () => {
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["branches"],
         ["previewServicesByProject"],
         ["previewServicesCatalog"],
-        ["previewNodesByProject"],
       );
     },
   });
@@ -397,12 +422,13 @@ export const useBranchesByNodeId = (nodeId) => {
     queryKey: ["branches", nodeKey],
     queryFn: async () => {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}branches/node/${nodeId}`,
+        `${import.meta.env.VITE_BACKEND_URL}${PREVIEW_SERVICES_PATH}?role=api_branch&parentNodeId=${encodeURIComponent(nodeId)}`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch branches");
       }
-      return response.json();
+      const payload = await response.json();
+      return Array.isArray(payload?.data) ? payload.data : [];
     },
     enabled: nodeKey != null && nodeKey !== "",
   });

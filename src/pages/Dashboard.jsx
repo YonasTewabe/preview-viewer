@@ -17,6 +17,7 @@ const { Title, Text } = Typography;
 function pickServices(payload) {
   if (!payload || typeof payload !== "object") return [];
   const list =
+    payload.data ??
     payload.services ??
     payload.webServices ??
     payload.apiServices ??
@@ -87,12 +88,9 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      const [statsRes, webRes, apiRes, projectsRes] = await Promise.all([
+      const [statsRes, nodesRes, projectsRes] = await Promise.all([
         api.get("stats").catch(() => ({ data: null })),
-        api.get("preview-nodes").catch(() => ({ data: {} })),
-        api.get("preview-services/summary").catch(() => ({
-          data: { services: [] },
-        })),
+        api.get("nodes/summary").catch(() => ({ data: { data: [] } })),
         api.get("projects").catch(() => ({ data: [] })),
       ]);
 
@@ -100,10 +98,7 @@ const Dashboard = () => {
         statsRes?.data && typeof statsRes.data === "object"
           ? statsRes.data
           : {};
-      const services = [
-        ...pickServices(webRes.data).filter((s) => !s.is_deleted),
-        ...pickServices(apiRes.data),
-      ];
+      const services = pickServices(nodesRes.data).filter((s) => !s.is_deleted);
       const projectRows = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
       const projectNameById = new Map(
         projectRows.map((p) => [String(p.id), p.name]).filter(([, n]) => !!n),
@@ -135,7 +130,6 @@ const Dashboard = () => {
         const buildDate =
           service.updated_at ||
           service.last_build_at ||
-          service.last_build_date ||
           service.created_at;
         const t = buildDate ? new Date(buildDate).getTime() : 0;
         recentBuildsList.push({

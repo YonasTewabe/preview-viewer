@@ -6,8 +6,8 @@ import {
   queryKeyPart,
 } from "../utils/invalidateQueries";
 
-/** Deployable preview nodes: env overrides, build history, Jenkins deploy path (DB role may be frontend or api_service). */
-const PREVIEW_NODES_PATH = "preview-nodes";
+/** Unified nodes API for all roles. */
+const PREVIEW_NODES_PATH = "nodes";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -17,13 +17,20 @@ const api = axios.create({
 });
 
 const previewNodesClient = {
-  getAll: () => api.get(PREVIEW_NODES_PATH),
+  getAll: () => api.get(PREVIEW_NODES_PATH, { params: { role: "frontend" } }),
   getById: (id) => api.get(`${PREVIEW_NODES_PATH}/${id}`),
   getByProjectId: (projectId) =>
-    api.get(`${PREVIEW_NODES_PATH}/project/${projectId}`),
+    api.get(PREVIEW_NODES_PATH, {
+      params: { projectId, role: "frontend" },
+    }),
   create: (data) => api.post(PREVIEW_NODES_PATH, { data }),
-  update: (id, data) => api.put(`${PREVIEW_NODES_PATH}/${id}`, data),
-  deleteAll: () => api.delete(PREVIEW_NODES_PATH),
+  update: (id, data) => api.patch(`${PREVIEW_NODES_PATH}/${id}`, data),
+  deleteAll: async () => {
+    const res = await api.get(PREVIEW_NODES_PATH, { params: { role: "frontend" } });
+    const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+    await Promise.all(rows.map((row) => api.delete(`${PREVIEW_NODES_PATH}/${row.id}`)));
+    return { data: { message: "All frontend nodes removed" } };
+  },
   deleteById: (id) => api.delete(`${PREVIEW_NODES_PATH}/${id}`),
   listEnvVars: (nodeId, profileId = null) =>
     api.get(`${PREVIEW_NODES_PATH}/${nodeId}/env-vars`, {
@@ -55,7 +62,7 @@ const previewNodesClient = {
 };
 
 /**
- * Any preview row by primary key (unified shape from GET /api/node/:id).
+ * Any preview row by primary key.
  */
 export function usePreviewNode(id, options = {}) {
   const { message } = App.useApp();
@@ -63,7 +70,28 @@ export function usePreviewNode(id, options = {}) {
   return useQuery({
     queryKey: ["previewNode", idKey],
     queryFn: async () => {
-      const res = await api.get(`node/${id}`);
+      const res = await api.get(`${PREVIEW_NODES_PATH}/${id}`);
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    enabled: options.enabled !== undefined ? options.enabled : Boolean(id),
+    onError: (error) => {
+      console.error("Error fetching node:", error);
+      message.error("Failed to load node");
+    },
+  });
+}
+
+export function useNode(id, options = {}) {
+  const { message } = App.useApp();
+  const idKey = queryKeyPart(id);
+  return useQuery({
+    queryKey: ["node", idKey],
+    queryFn: async () => {
+      const res = await api.get(`${PREVIEW_NODES_PATH}/${id}`);
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -90,7 +118,10 @@ export const usePreviewNodesByProjectId = (projectId) => {
   const projectKey = queryKeyPart(projectId);
   return useQuery({
     queryKey: ["previewNodesByProject", projectKey],
-    queryFn: () => previewNodesClient.getByProjectId(projectId),
+    queryFn: async () => {
+      const res = await previewNodesClient.getByProjectId(projectId);
+      return { ...res, data: res?.data?.data ?? [] };
+    },
     enabled: projectKey != null && projectKey !== "",
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -113,10 +144,11 @@ export const useCreatePreviewNode = () => {
       const pk = queryKeyPart(projectId);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewNodesCatalog"],
         ["previewNodesByProject"],
         ...(pk != null ? [["previewNodesByProject", pk]] : []),
-        ["previewServicesByProject"],
       );
       message.success("Service created");
     },
@@ -143,17 +175,19 @@ export const useUpdatePreviewNode = () => {
       const nid = queryKeyPart(variables?.id);
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewNodesCatalog"],
         ["previewNodesByProject"],
         ...(pk != null ? [["previewNodesByProject", pk]] : []),
         ...(nid != null
           ? [
               ["previewNode", nid],
+              ["node", nid],
               ["nodeBuildHistory", nid],
               ["previewServiceById", nid],
             ]
           : []),
-        ["previewServicesByProject"],
       );
       message.success("Service updated");
     },
@@ -181,10 +215,10 @@ export const useDeletePreviewNode = () => {
       }
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewNodesCatalog"],
         ["previewNodesByProject"],
-        ["previewServicesByProject"],
-        ["previewServicesCatalog"],
       );
       message.success("Service removed");
     },
@@ -206,9 +240,10 @@ export const useDeleteAllPreviewNodes = () => {
     onSuccess: async () => {
       await invalidateAndRefetchActive(
         queryClient,
+        ["nodes"],
+        ["node"],
         ["previewNodesCatalog"],
         ["previewNodesByProject"],
-        ["previewServicesByProject"],
       );
     },
   });

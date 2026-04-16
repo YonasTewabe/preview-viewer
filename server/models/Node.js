@@ -89,10 +89,6 @@ const Node = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    build_url: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
-    },
     preview_link: {
       type: DataTypes.STRING(500),
       allowNull: true,
@@ -105,10 +101,6 @@ const Node = sequelize.define(
       type: DataTypes.ENUM("active", "inactive", "deleted"),
       defaultValue: "active",
     },
-    is_approved: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
     is_deleted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -117,15 +109,7 @@ const Node = sequelize.define(
       type: DataTypes.STRING(500),
       allowNull: true,
     },
-    jenkins_job: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
     jenkins_job_url: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
-    },
-    deployment_url: {
       type: DataTypes.STRING(500),
       allowNull: true,
     },
@@ -133,16 +117,8 @@ const Node = sequelize.define(
       type: DataTypes.ENUM("development", "staging", "production", "preview"),
       defaultValue: "preview",
     },
-    last_build_date: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
     /** Set when a Jenkins preview build finishes (success or failure) for this node. */
     last_build_at: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    created_at_build: {
       type: DataTypes.DATE,
       allowNull: true,
     },

@@ -32,10 +32,8 @@ function buildServiceNodeUpdatePayload(node, serviceName, branchName) {
   return {
     service_name: serviceName,
     repository_name: node.repository_name,
-    jenkins_job: node.jenkins_job,
     build_status: node.build_status,
     build_number: node.build_number,
-    build_url: node.build_url,
     branch_name: br,
     domain_name: node.domain_name,
     port: node.port,

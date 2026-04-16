@@ -182,7 +182,6 @@ module.exports = {
         defaultValue: "pending",
       },
       build_result: { type: Sequelize.STRING(100), allowNull: true },
-      build_url: { type: Sequelize.STRING(500), allowNull: true },
       preview_link: { type: Sequelize.STRING(500), allowNull: true },
       domain_name: { type: Sequelize.STRING(500), allowNull: true },
       status: {
@@ -190,28 +189,19 @@ module.exports = {
         allowNull: true,
         defaultValue: "active",
       },
-      is_approved: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       is_deleted: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
       },
       default_url: { type: Sequelize.STRING(500), allowNull: true },
-      jenkins_job: { type: Sequelize.STRING(255), allowNull: true },
       jenkins_job_url: { type: Sequelize.STRING(500), allowNull: true },
-      deployment_url: { type: Sequelize.STRING(500), allowNull: true },
       environment: {
         type: Sequelize.ENUM("development", "staging", "production", "preview"),
         allowNull: true,
         defaultValue: "preview",
       },
-      last_build_date: { type: Sequelize.DATE, allowNull: true },
       last_build_at: { type: Sequelize.DATE, allowNull: true },
-      created_at_build: { type: Sequelize.DATE, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
     });
