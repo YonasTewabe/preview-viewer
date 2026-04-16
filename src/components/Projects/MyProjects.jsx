@@ -36,13 +36,8 @@ const { Search } = Input;
 const { Text, Link } = Typography;
 
 const MyProjects = () => {
-  const {
-    projects,
-    loading,
-    createProject,
-    updateProject,
-    deleteProject,
-  } = useProjects();
+  const { projects, loading, createProject, updateProject, deleteProject } =
+    useProjects();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -156,17 +151,8 @@ const MyProjects = () => {
       <Row gutter={[24, 24]} className="mb-2">
         <Col xs={24} sm={12} lg={6}>
           <StatsCard
-            title="Total Preview Nodes"
-            value={Number(stats.totalNodes) || 0}
-            icon={<AppstoreOutlined />}
-            color="blue"
-            loading={loading}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
             title="Projects"
-            value={Number(stats.totalProjects) || projects.length}
+            value={stats.totalProjects}
             icon={<ProjectOutlined />}
             color="blue"
             loading={loading}
@@ -174,8 +160,17 @@ const MyProjects = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatsCard
+            title="Nodes"
+            value={stats.totalNodes}
+            icon={<AppstoreOutlined />}
+            color="blue"
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <StatsCard
             title="Environment profiles"
-            value={Number(stats.totalEnvProfiles) || 0}
+            value={stats.totalEnvProfiles}
             icon={<CheckSquareOutlined />}
             color="blue"
             loading={loading}
