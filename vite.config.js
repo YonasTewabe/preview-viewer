@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 function apiProxyTargetFromEnv(env) {
-  const fallback = "https://preview-backend.ienetworks.co";
+  const fallback = "http://localhost:4000";
   const raw = env.VITE_BACKEND_URL;
   if (!raw || typeof raw !== "string") return fallback;
   try {

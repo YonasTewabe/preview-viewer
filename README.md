@@ -1,72 +1,161 @@
 # Preview Viewer
 
-A React + Vite application for triggering preview builds of GitHub repositories.
+Preview Viewer is a full-stack internal tool for managing preview environments.  
+It provides a React frontend and an Express backend to manage projects, nodes, environment variables, and Jenkins preview jobs from one interface.
 
-## Features
+## What the app does
 
-- Select repositories from your GitHub organization
-- Choose branches for preview builds
-- Trigger preview deployments
-- View build status and preview URLs
+Preview Viewer helps teams:
+
+- Manage project and node configuration in a central UI
+- Trigger preview builds/jobs through Jenkins
+- Track preview build history and statuses
+- Configure environment variables at project and node levels
+- Handle authentication, user profiles, and password reset flows
+- Manage deleted items through a trash/recovery workflow
+
+## Main features
+
+- Authentication and user management
+  - Login flow
+  - Forgot/reset password
+  - User/profile pages
+- Project and node management
+  - Projects listing and dashboard views
+  - Node configuration and build history
+  - API branch-related operations
+- Jenkins integration
+  - Trigger preview jobs
+  - Delete preview jobs/domains
+  - Jenkins-specific app configuration
+- Environment management
+  - Project-level and node-level environment variables
+  - Dedicated environment management pages
+- Operational tooling
+  - Trash management
+  - System settings and stats endpoints
+
+## Tech stack
+
+- Frontend: React, Vite, React Router, Axios, TanStack Query, Ant Design, Tailwind CSS
+- Backend: Node.js, Express, Sequelize, MySQL, JWT auth, Nodemailer, node-cron
+- CI/CD integration: Jenkins
+
+## Project structure
+
+- `src/`: React frontend
+- `server/`: Express backend
+- `env.example`: frontend environment template
+- `server/env.example`: backend environment template
+
+## Prerequisites
+
+- Node.js 18+ (recommended)
+- npm
+- MySQL database (for backend persistence)
+- Jenkins server and jobs (for preview build features)
+- SMTP credentials (for password reset emails)
 
 ## Setup
 
-### 1. Environment Variables
+### 1) Install dependencies
 
-Create a `.env` file in the root directory:
-
-```env
-VITE_GITHUB_ORG=your-org-name
-VITE_API_BASE_URL=https://preview-backend.ienetworks.co
-```
-
-Create a `.env` file in the `server/` directory:
-
-```env
-GITHUB_ORG=your-org-name
-GITHUB_TOKEN=your-github-token
-PORT=4000
-```
-
-**Note:** Copy the example files (`env.example` and `server/env.example`) and rename them to `.env`, then update the values with your actual GitHub organization and token.
-
-### 2. Install Dependencies
+From the repo root:
 
 ```bash
-# Install frontend dependencies
 npm install
-
-# Install backend dependencies
 cd server
 npm install
 ```
 
-### 3. Start the Application
+### 2) Configure environment variables
+
+Create environment files by copying the provided examples:
 
 ```bash
-# Option 1: Start both frontend and backend together
+# from repo root
+cp env.example .env
+cp server/env.example server/.env
+```
+
+Then update values in:
+
+- `.env` (frontend/Vite values such as backend URL, preview URL, Jenkins client settings)
+- `server/.env` (backend values such as database, JWT, SMTP, Jenkins credentials)
+
+### 3) Prepare the database
+
+From `server/`:
+
+```bash
+npm run db:init
+npm run db:migrate
+```
+
+Optional seed:
+
+```bash
+npm run db:seed
+```
+
+## Run the app
+
+From the root directory:
+
+```bash
 npm run dev:full
+```
 
-# Option 2: Start them separately
-# Terminal 1 - Backend server (in server directory)
+This starts:
+
+- Frontend on `http://localhost:5173`
+- Backend on `http://localhost:4000` (default)
+
+You can also run services separately:
+
+```bash
+# backend
 cd server
 npm run dev
 
-# Terminal 2 - Frontend (in root directory)
+# frontend (in another terminal, at repo root)
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173` and the backend at `https://preview-backend.ienetworks.co`.
+## How to use the app
 
-## Development
+1. Open `http://localhost:5173`
+2. Log in with a valid user account
+3. Navigate to projects/dashboard to choose a project or node
+4. Configure required environment variables
+5. Trigger preview builds from node/project controls
+6. Monitor build status/history and open generated preview links
+7. Use trash/settings pages for cleanup and operational admin tasks
 
-- Frontend: React + Vite with Tailwind CSS
-- Backend: Express.js with GitHub API integration
-- API proxy configured for development
+## Useful scripts
 
-## API Endpoints
+### Root scripts
 
-- `GET /api/github/repos` - Fetch repositories from GitHub organization
-- `GET /api/github/branches?repo=<repo>&org=<org>` - Fetch branches for a repository
-- `POST /api/trigger-build` - Trigger a preview build
-- `GET /api/build-status/:buildId` - Check build status
+- `npm run dev`: start frontend
+- `npm run build`: build frontend
+- `npm run lint`: lint frontend
+- `npm run preview`: preview production frontend build
+- `npm run server`: start backend dev server from root
+- `npm run dev:full`: run frontend + backend together
+
+### Server scripts (`server/`)
+
+- `npm run dev`: start backend with nodemon
+- `npm run start`: start backend with node
+- `npm run db:init`: initialize database
+- `npm run db:migrate`: run migrations
+- `npm run db:migrate:undo`: undo last migration
+- `npm run db:migrate:undo:all`: undo all migrations
+- `npm run db:seed`: run seeders
+- `npm run db:seed:undo`: undo seeders
+
+## Notes
+
+- Ensure frontend `VITE_BACKEND_URL` points to the backend API path (for example `http://localhost:4000/api/`).
+- Password reset and notification features require valid SMTP configuration in `server/.env`.
+- Jenkins features require valid Jenkins URL, credentials, and job names in both frontend and backend env files where applicable.
