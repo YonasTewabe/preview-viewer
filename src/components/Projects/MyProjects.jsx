@@ -1,256 +1,231 @@
-import React, { useState, useMemo } from "react";
-import {
-  Card,
-  Button,
-  Input,
-  Space,
-  Tooltip,
-  Typography,
-  Row,
-  Col,
-  Statistic,
-  Pagination,
-  Empty,
-  Badge,
-  message,
-} from "antd";
-import {
-  PlusOutlined,
-  SearchOutlined,
-  ProjectOutlined,
-  AppstoreOutlined,
-  CheckSquareOutlined,
-} from "@ant-design/icons";
-import StatsCard from "../Dashboard/StatsCard";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import AddProjectModal from "./AddProjectModal";
+import { useState, useMemo } from "react";
+import { Button, Pagination, Spin } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Search } from "lucide-react";
 import ProjectCard from "../Profile/ProjectCard";
+import AddProjectModal from "./AddProjectModal";
 import { useProjects } from "../../hooks/useProjects";
-import { useQuery } from "@tanstack/react-query";
-import { projectService } from "../../services/projectService";
+import { App } from "antd";
 
-dayjs.extend(relativeTime);
+const PAGE_SIZE = 9;
 
-const { Search } = Input;
-const { Text, Link } = Typography;
+/** Small filter tab pill */
+function FilterTab({ label, count, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors whitespace-nowrap"
+      style={
+        active
+          ? { background: "var(--app-primary, #6366f1)", color: "#fff" }
+          : { background: "transparent", color: "var(--app-text-muted, #94a3b8)" }
+      }
+    >
+      {label}
+      {count != null && (
+        <span className={`ml-1.5 text-xs ${active ? "opacity-80" : "opacity-60"}`}>
+          ({count})
+        </span>
+      )}
+    </button>
+  );
+}
 
 const MyProjects = () => {
-  const { projects, loading, createProject, updateProject, deleteProject } =
-    useProjects();
+  const { message } = App.useApp();
+  const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchTerm,    setSearchTerm]    = useState("");
+  const [inputVal,      setInputVal]      = useState("");
+  const [tagFilter,     setTagFilter]     = useState("all");
+  const [currentPage,   setCurrentPage]   = useState(1);
+  const [isModalOpen,   setIsModalOpen]   = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-  const { data: stats = {} } = useQuery({
-    queryKey: ["stats"],
-    queryFn: () => projectService.getStats(),
-  });
 
-  const filteredProjects = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return projects;
-
-    return projects.filter((project) => {
-      const name = String(project.name ?? "").toLowerCase();
-      const tag = String(project.tag ?? "").toLowerCase();
-      return name.includes(q) || tag.includes(q);
+  // Tag counts for filter tabs
+  const tagCounts = useMemo(() => {
+    const counts = { frontend: 0, backend: 0 };
+    projects.forEach((p) => {
+      const t = String(p.tag ?? "").toLowerCase();
+      if (t === "frontend") counts.frontend += 1;
+      if (t === "backend")  counts.backend  += 1;
     });
-  }, [projects, searchTerm]);
+    return counts;
+  }, [projects]);
 
-  const handleAddProject = () => {
-    setEditingProject(null);
-    setIsModalVisible(true);
-  };
-
-  const handleEditProject = (projectFromCard) => {
-    const id = projectFromCard?.id;
-    const full =
-      id != null
-        ? (projects.find((p) => p.id === id) ?? projectFromCard)
-        : projectFromCard;
-    setEditingProject(full);
-    setIsModalVisible(true);
-  };
-
-  const handleDeleteProject = async (project) => {
-    if (!project) {
-      message.error("Project not found");
-      return;
+  // Filtered list
+  const filtered = useMemo(() => {
+    let list = projects;
+    if (tagFilter !== "all") {
+      list = list.filter((p) => String(p.tag ?? "").toLowerCase() === tagFilter);
     }
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      list = list.filter((p) =>
+        String(p.name ?? "").toLowerCase().includes(q) ||
+        String(p.tag ?? "").toLowerCase().includes(q) ||
+        String(p.short_code ?? "").toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [projects, tagFilter, searchTerm]);
+
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Handlers
+  const commitSearch = (val) => { setSearchTerm(val); setCurrentPage(1); };
+  const handleTagFilter = (t) => { setTagFilter(t); setCurrentPage(1); };
+
+  const handleEdit = (project) => {
+    const full = projects.find((p) => p.id === project?.id) ?? project;
+    setEditingProject(full);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (project) => {
     try {
       await deleteProject(project.id);
-      message.success(`Project "${project.name}" deleted successfully`);
-    } catch (error) {
-      console.error("Error deleting project:", error);
-      message.error("Failed to delete project. Please try again.");
+    } catch {
+      // error toast handled inside hook
     }
   };
 
   const handleModalSubmit = async (formData) => {
     try {
       if (editingProject?.id != null) {
-        await updateProject({
-          id: editingProject.id,
-          ...formData,
-        });
+        await updateProject({ id: editingProject.id, ...formData });
       } else {
         await createProject(formData);
       }
-      setIsModalVisible(false);
+      setIsModalOpen(false);
       setEditingProject(null);
-    } catch (error) {
-      console.error("Error submitting project:", error);
-      throw error;
+    } catch (err) {
+      throw err; // let the modal handle field errors
     }
   };
 
-  // Calculate pagination for cards
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
-
-  // Transform project data to match ProjectCard expected format
-  const transformProjectForCard = (project) => ({
-    ...project,
-    role: "Owner", // Default role, could be determined by user permissions
-    createdAt: project.created_at,
-    updatedAt: project.updated_at,
-    memberCount: Math.floor(Math.random() * 10) + 1, // Placeholder for member count
-  });
-
   return (
-    <div className="space-y-6 text-black dark:text-white">
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-5" style={{ color: "var(--app-text)" }}>
+
+      {/* ── Page header ── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="mb-0 text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-400">
-            My Projects
-          </h2>
-          <p className="font-bold text-gray-700 dark:text-gray-300">
-            Manage and monitor all your development projects
+          <h1 className="text-2xl font-bold" style={{ color: "var(--app-text)" }}>
+            All projects
+          </h1>
+          <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
+            {filtered.length} {filtered.length === 1 ? "result" : "results"}
           </p>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div
+            className="flex items-center gap-2 rounded-lg border px-3 py-1.5"
+            style={{
+              borderColor: "var(--app-border)",
+              background:  "var(--app-surface)",
+            }}
+          >
+            <Search size={13} style={{ color: "var(--app-text-muted)" }} />
+            <input
+              type="text"
+              placeholder="Search by name or tag..."
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && commitSearch(inputVal)}
+              onBlur={() => commitSearch(inputVal)}
+              className="w-48 bg-transparent text-sm outline-none placeholder:text-zinc-500"
+              style={{ color: "var(--app-text)" }}
+            />
+          </div>
+
+          {/* Tag filter tabs */}
+          <div
+            className="flex rounded-lg p-0.5"
+            style={{
+              border:     "1px solid var(--app-border)",
+              background: "var(--app-surface)",
+            }}
+          >
+            <FilterTab
+              label="All"
+              count={projects.length}
+              active={tagFilter === "all"}
+              onClick={() => handleTagFilter("all")}
+            />
+            <FilterTab
+              label="Frontend"
+              count={tagCounts.frontend}
+              active={tagFilter === "frontend"}
+              onClick={() => handleTagFilter("frontend")}
+            />
+            <FilterTab
+              label="Backend"
+              count={tagCounts.backend}
+              active={tagFilter === "backend"}
+              onClick={() => handleTagFilter("backend")}
+            />
+          </div>
+
+          {/* Add project */}
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddProject}
-            className="!bg-blue-600 !border-blue-600 hover:!bg-blue-700"
-            size="large"
-            block
-            style={{ maxWidth: 220 }}
+            onClick={() => { setEditingProject(null); setIsModalOpen(true); }}
           >
-            Add New Project
+            New project
           </Button>
         </div>
       </div>
 
-      <Row gutter={[24, 24]} className="mb-2">
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
-            title="Projects"
-            value={stats.totalProjects}
-            icon={<ProjectOutlined />}
-            color="blue"
-            loading={loading}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
-            title="Nodes"
-            value={stats.totalNodes}
-            icon={<AppstoreOutlined />}
-            color="blue"
-            loading={loading}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
-            title="Environment profiles"
-            value={stats.totalEnvProfiles}
-            icon={<CheckSquareOutlined />}
-            color="blue"
-            loading={loading}
-          />
-        </Col>
-      </Row>
-
-      <Card className="mb-4 border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-1 gap-2 w-full sm:w-auto">
-            <Search
-              placeholder="Search by name or tag"
-              allowClear
-              size="large"
-              className="flex-1"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onSearch={setSearchTerm}
-            />
-          </div>
+      {/* ── Grid ── */}
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Spin size="large" />
         </div>
+      ) : paginated.length === 0 ? (
+        <div
+          className="flex h-64 items-center justify-center rounded-xl border text-sm"
+          style={{ borderColor: "var(--app-border)", color: "var(--app-text-muted)" }}
+        >
+          No projects found.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {paginated.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              canEdit
+              canDelete
+            />
+          ))}
+        </div>
+      )}
 
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <Card className="border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <Empty description="No projects found" className="py-12" />
-          </Card>
-        ) : (
-          <>
-            <Row className="mt-4" gutter={[24, 24]}>
-              {paginatedProjects.map((project) => (
-                <Col key={project.id} xs={24} sm={12} lg={8}>
-                  <ProjectCard
-                    project={transformProjectForCard(project)}
-                    onEdit={handleEditProject}
-                    onDelete={handleDeleteProject}
-                    canEdit={true}
-                    canDelete={true}
-                  />
-                </Col>
-              ))}
-            </Row>
+      {/* ── Pagination ── */}
+      {filtered.length > PAGE_SIZE && (
+        <div className="flex justify-end pt-2">
+          <Pagination
+            current={currentPage}
+            total={filtered.length}
+            pageSize={PAGE_SIZE}
+            onChange={(p) => setCurrentPage(p)}
+            showSizeChanger={false}
+            size="small"
+          />
+        </div>
+      )}
 
-            {filteredProjects.length > pageSize && (
-              <div className="mt-6 overflow-x-auto">
-                <Pagination
-                  current={currentPage}
-                  total={filteredProjects.length}
-                  pageSize={pageSize}
-                  showSizeChanger
-                  showQuickJumper
-                  showTotal={(total, range) =>
-                    `${range[0]}-${range[1]} of ${total} projects`
-                  }
-                  onChange={(page, size) => {
-                    setCurrentPage(page);
-                    if (size !== pageSize) {
-                      setPageSize(size);
-                      setCurrentPage(1);
-                    }
-                  }}
-                  pageSizeOptions={["12", "24", "36", "48"]}
-                />
-              </div>
-            )}
-          </>
-        )}
-      </Card>
-      {/* Add/Edit Project Modal */}
+      {/* ── Modal ── */}
       <AddProjectModal
-        visible={isModalVisible}
+        visible={isModalOpen}
         project={editingProject}
         onSubmit={handleModalSubmit}
-        onCancel={() => {
-          setIsModalVisible(false);
-          setEditingProject(null);
-        }}
+        onCancel={() => { setIsModalOpen(false); setEditingProject(null); }}
         isEdit={!!editingProject}
       />
     </div>

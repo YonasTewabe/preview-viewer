@@ -1,108 +1,166 @@
-import { Card, Statistic } from "antd";
-import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import { Skeleton } from "antd";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+
+/**
+ * StatsCard — matches the dashboard design:
+ *   - Uppercase small label top-left
+ *   - Large bold number
+ *   - Subtitle line (e.g. "Active infrastructure")
+ *   - Icon badge top-right
+ *   - Trend chip bottom-left + "vs last 30 days" text
+ *
+ * Props:
+ *   title       string   — uppercase label
+ *   value       number   — main metric
+ *   subtitle    string   — small descriptor under the value
+ *   icon        ReactNode
+ *   color       "blue" | "green" | "red" | "orange" | "purple"
+ *   trend       "up" | "down" | "new" | "neutral"
+ *   trendValue  string   — e.g. "+28%" or "New"
+ *   loading     boolean
+ */
+
+const COLOR = {
+  blue: {
+    icon: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    trendUp: "bg-emerald-500/15 text-emerald-400",
+    trendDown: "bg-rose-500/15 text-rose-400",
+    trendNew: "bg-emerald-500/15 text-emerald-400",
+  },
+  green: {
+    icon: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+    trendUp: "bg-emerald-500/15 text-emerald-400",
+    trendDown: "bg-rose-500/15 text-rose-400",
+    trendNew: "bg-emerald-500/15 text-emerald-400",
+  },
+  red: {
+    icon: "bg-rose-500/20 text-rose-400 border-rose-500/30",
+    trendUp: "bg-emerald-500/15 text-emerald-400",
+    trendDown: "bg-rose-500/15 text-rose-400",
+    trendNew: "bg-emerald-500/15 text-emerald-400",
+  },
+  orange: {
+    icon: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    trendUp: "bg-emerald-500/15 text-emerald-400",
+    trendDown: "bg-rose-500/15 text-rose-400",
+    trendNew: "bg-emerald-500/15 text-emerald-400",
+  },
+  purple: {
+    icon: "bg-violet-500/20 text-violet-400 border-violet-500/30",
+    trendUp: "bg-emerald-500/15 text-emerald-400",
+    trendDown: "bg-rose-500/15 text-rose-400",
+    trendNew: "bg-emerald-500/15 text-emerald-400",
+  },
+};
+
+function TrendChip({ trend, trendValue }) {
+  if (!trendValue) return null;
+
+  const isDown = trend === "down";
+  const isNeutral = !trend || trendValue === "0%";
+
+  const chipClass = isNeutral
+    ? "bg-zinc-500/15 text-zinc-400"
+    : isDown
+      ? "bg-rose-500/15 text-rose-400"
+      : "bg-emerald-500/15 text-emerald-400";
+
+  const Icon = !isNeutral && trend === "up"
+    ? TrendingUp
+    : !isNeutral && isDown
+      ? TrendingDown
+      : Minus;
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${chipClass}`}>
+      <Icon size={11} />
+      {trendValue}
+    </span>
+  );
+}
 
 const StatsCard = ({
   title,
   value,
-  prefix,
-  suffix,
+  subtitle,
+  icon,
+  color = "blue",
   trend,
   trendValue,
-  color = "blue",
-  icon,
   loading = false,
 }) => {
-  const colorMap = {
-    blue:
-      "text-blue-600 dark:text-blue-400 bg-[color-mix(in_srgb,var(--app-primary)_14%,transparent)] border-[color-mix(in_srgb,var(--app-primary)_26%,transparent)]",
-    green: "text-green-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-500/15 dark:border-emerald-500/30",
-    red: "text-red-600 dark:text-red-400 bg-rose-50 border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/30",
-    orange:
-      "text-orange-600 dark:text-orange-400 bg-orange-50 border-orange-200",
-    purple:
-      "text-purple-600 dark:text-purple-400 bg-purple-50 border-purple-200",
-  };
+  const palette = COLOR[color] ?? COLOR.blue;
 
-  const getTrendIcon = () => {
-    if (trend === "up") return <ArrowUpOutlined className="text-green-500" />;
-    if (trend === "down") return <ArrowDownOutlined className="text-red-500" />;
-    return null;
-  };
-
-  const getTrendColor = () => {
-    if (trend === "up") return "text-green-600";
-    if (trend === "down") return "text-red-600";
-    return "text-gray-600";
-  };
+  if (loading) {
+    return (
+      <div
+        className="rounded-xl border p-5"
+        style={{
+          borderColor: "var(--app-border)",
+          background: "var(--app-card, var(--app-surface))",
+        }}
+      >
+        <Skeleton active paragraph={{ rows: 2 }} title={false} />
+      </div>
+    );
+  }
 
   return (
-    <Card
-      className="border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-      loading={loading}
+    <div
+      className="rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg flex flex-col gap-3"
+      style={{
+        borderColor: "var(--app-border)",
+        background: "var(--app-card, var(--app-surface))",
+      }}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <Statistic
-            title={
-              <span
-                className="text-sm font-medium"
-                style={{ color: "var(--app-text)" }}
-              >
-                {title}
-              </span>
-            }
-            value={value}
-            prefix={prefix}
-            suffix={suffix}
-            valueStyle={{
-              color:
-                color === "green"
-                  ? "#10b981"
-                  : color === "red"
-                    ? "#ef4444"
-                    : "var(--app-text)",
-              fontSize: "28px",
-              fontWeight: "600",
-              lineHeight: "1.2",
-            }}
-          />
-        </div>
-
+      {/* Top row: label + icon */}
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className="text-[11px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--app-text-muted, #94a3b8)" }}
+        >
+          {title}
+        </span>
         {icon && (
-          <div
-            className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorMap[color]}`}
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-base ${palette.icon}`}
           >
-            <span
-              className={`text-xl ${
-                color === "green"
-                  ? "text-green-600 dark:text-green-400"
-                  : color === "red"
-                    ? "text-red-600 dark:text-red-400"
-                    : color === "orange"
-                      ? "text-orange-600 dark:text-orange-400"
-                      : "text-blue-600 dark:text-blue-400"
-              }`}
-            >
-              {icon}
-            </span>
-          </div>
+            {icon}
+          </span>
         )}
       </div>
 
-      {trend && (
-        <div className="mt-4 flex items-center border-t pt-4" style={{ borderColor: "var(--app-border)" }}>
-          <div className="flex items-center space-x-1">
-            {getTrendIcon()}
-            <span className={`text-sm font-medium ${getTrendColor()}`}>
-              {trendValue}
-            </span>
-            <span className="text-sm" style={{ color: "var(--app-text-muted)" }}>
-              vs last month
-            </span>
-          </div>
+      {/* Value */}
+      <div>
+        <p
+          className="text-4xl font-bold leading-none tracking-tight"
+          style={{ color: "var(--app-text, #f1f5f9)" }}
+        >
+          {typeof value === "number" ? value.toLocaleString() : value}
+        </p>
+        {subtitle && (
+          <p
+            className="mt-1 text-sm"
+            style={{ color: "var(--app-text-muted, #94a3b8)" }}
+          >
+            {subtitle}
+          </p>
+        )}
+      </div>
+
+      {/* Trend row */}
+      {trendValue !== undefined && (
+        <div className="flex items-center gap-2 pt-1">
+          <TrendChip trend={trend} trendValue={trendValue ?? "0%"} />
+          <span
+            className="text-xs"
+            style={{ color: "var(--app-text-muted, #94a3b8)" }}
+          >
+            vs last 30 days
+          </span>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

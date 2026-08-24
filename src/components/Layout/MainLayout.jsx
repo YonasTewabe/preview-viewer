@@ -4,11 +4,10 @@ import {
   MoonOutlined,
   SunOutlined,
   UserOutlined,
-  ProfileOutlined,
-  LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
+import { IdCard, LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -48,17 +47,68 @@ const MainLayout = ({ children }) => {
   const userMenuItems = [
     {
       key: "profile",
-      icon: <ProfileOutlined />,
-      label: "Profile",
+      icon: <IdCard size={15} />,
+      label: "My Profile",
       onClick: () => navigate("/profile"),
     },
     {
       key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Logout",
+      icon: <LogOut size={15} />,
+      label: "Log out",
       onClick: handleLogout,
+      danger: true,
     },
   ];
+
+  const profileDropdown = (
+    <div
+      className="w-64 overflow-hidden rounded-xl shadow-2xl"
+      style={{
+        background: "var(--app-card, #111318)",
+        border: "1px solid var(--app-border, #23272f)",
+      }}
+    >
+      {/* User info */}
+      <div className="px-5 py-4">
+        <p
+          className="text-base font-bold leading-tight"
+          style={{ color: "var(--app-text, #f1f5f9)" }}
+        >
+          {user?.name || "Account"}
+        </p>
+        <p
+          className="mt-0.5 truncate text-sm"
+          style={{ color: "var(--app-text-muted, #94a3b8)" }}
+        >
+          {user?.email || ""}
+        </p>
+      </div>
+
+      <div style={{ borderTop: "1px solid var(--app-border, #23272f)" }} />
+
+      {/* My Profile */}
+      <button
+        onClick={() => { navigate("/profile"); }}
+        className="flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-sm font-medium transition-colors hover:bg-white/5"
+        style={{ color: "var(--app-text, #f1f5f9)", background: "transparent" }}
+      >
+        <IdCard size={16} style={{ color: "var(--app-text-muted, #94a3b8)" }} />
+        My Profile
+      </button>
+
+      <div style={{ borderTop: "1px solid var(--app-border, #23272f)" }} />
+
+      {/* Log out */}
+      <button
+        onClick={handleLogout}
+        className="flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-sm font-medium transition-colors hover:bg-rose-500/10"
+        style={{ color: "#ef4444", background: "transparent" }}
+      >
+        <LogOut size={16} />
+        Log out
+      </button>
+    </div>
+  );
 
   return (
     <Layout
@@ -132,7 +182,7 @@ const MainLayout = ({ children }) => {
                 />
               </Tooltip>
               <Dropdown
-                menu={{ items: userMenuItems }}
+                dropdownRender={() => profileDropdown}
                 placement="bottomRight"
                 trigger={["click"]}
               >
