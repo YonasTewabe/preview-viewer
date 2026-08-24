@@ -85,7 +85,7 @@ const ProjectCard = ({
 
   return (
     <div
-      className="flex h-full cursor-pointer flex-col rounded-xl border transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
+      className="group flex h-full cursor-pointer flex-col rounded-xl border transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg"
       style={{
         background:   "var(--app-surface)",
         borderColor:  "var(--app-border)",
@@ -186,7 +186,7 @@ const ProjectCard = ({
           {nodeCount} {nodeCount === 1 ? "node" : "nodes"}
         </span>
         <button
-          className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
+          className="flex items-center gap-1 text-xs font-medium opacity-0 translate-x-1 transition-all duration-150 group-hover:opacity-100 group-hover:translate-x-0"
           style={{ color: "var(--app-primary, #6366f1)", background: "transparent" }}
           onClick={(e) => { e.stopPropagation(); navigate(`/projects/${project.id}`); }}
         >

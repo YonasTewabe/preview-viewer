@@ -9,50 +9,52 @@ router.get("/", async (_req, res) => {
   try {
     const stats = await getSystemStats();
 
-    // ── 30-day trend calculations ─────────────────────────────────────────────
-    const now   = new Date();
-    const d30   = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const d60   = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+    // ── Daily change calculations ─────────────────────────────────────────────
+    // Compares: how many exist now vs how many existed before today (start of today UTC)
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setUTCHours(0, 0, 0, 0);
 
-    function pct(current, previous) {
-      if (previous === 0 && current === 0) return null;       // no data either period
-      if (previous === 0) return null;                         // can't divide by zero
-      const change = ((current - previous) / previous) * 100;
+    function pct(total, createdToday) {
+      const previous = total - createdToday;
+      if (previous === 0 && createdToday === 0) return null;  // nothing at all
+      if (previous === 0) return "+100%";                      // everything is new today
+      const change = (createdToday / previous) * 100;
       const rounded = Math.round(change);
       return rounded >= 0 ? `+${rounded}%` : `${rounded}%`;
     }
 
-    // Successful builds: current 30d vs previous 30d
-    const [successCurrent, successPrev] = await Promise.all([
-      NodeBuild.count({ where: { status: { [Op.in]: ["success","successful","passed","completed"] }, built_at: { [Op.gte]: d30 } } }),
-      NodeBuild.count({ where: { status: { [Op.in]: ["success","successful","passed","completed"] }, built_at: { [Op.between]: [d60, d30] } } }),
+    // Successful builds: total vs created today
+    const [successTotal, successToday] = await Promise.all([
+      NodeBuild.count({ where: { status: { [Op.in]: ["success","successful","passed","completed"] } } }),
+      NodeBuild.count({ where: { status: { [Op.in]: ["success","successful","passed","completed"] }, built_at: { [Op.gte]: startOfToday } } }),
     ]);
 
-    // Failed builds: current 30d vs previous 30d
-    const [failedCurrent, failedPrev] = await Promise.all([
-      NodeBuild.count({ where: { status: { [Op.in]: ["failed","failure","fail","error","unstable"] }, built_at: { [Op.gte]: d30 } } }),
-      NodeBuild.count({ where: { status: { [Op.in]: ["failed","failure","fail","error","unstable"] }, built_at: { [Op.between]: [d60, d30] } } }),
+    // Failed builds: total vs created today
+    const [failedTotal, failedToday] = await Promise.all([
+      NodeBuild.count({ where: { status: { [Op.in]: ["failed","failure","fail","error","unstable"] } } }),
+      NodeBuild.count({ where: { status: { [Op.in]: ["failed","failure","fail","error","unstable"] }, built_at: { [Op.gte]: startOfToday } } }),
     ]);
 
-    // Nodes created: current 30d vs previous 30d
-    const [nodesCurrent, nodesPrev] = await Promise.all([
-      Node.count({ where: { is_deleted: false, created_at: { [Op.gte]: d30 } } }),
-      Node.count({ where: { is_deleted: false, created_at: { [Op.between]: [d60, d30] } } }),
+    // Nodes: total vs created today
+    const [nodesTotal, nodesToday] = await Promise.all([
+      Node.count({ where: { is_deleted: false } }),
+      Node.count({ where: { is_deleted: false, created_at: { [Op.gte]: startOfToday } } }),
     ]);
 
-    // Projects created: current 30d vs previous 30d
-    const [projectsCurrent, projectsPrev] = await Promise.all([
-      Project.count({ where: { is_deleted: false, created_at: { [Op.gte]: d30 } } }),
-      Project.count({ where: { is_deleted: false, created_at: { [Op.between]: [d60, d30] } } }),
+    // Projects: total vs created today
+    const [projectsTotal, projectsToday] = await Promise.all([
+      Project.count({ where: { is_deleted: false } }),
+      Project.count({ where: { is_deleted: false, created_at: { [Op.gte]: startOfToday } } }),
     ]);
 
     res.json({
       ...stats,
       trends: {
-        nodes:      pct(nodesCurrent,    nodesPrev),
-        successful: pct(successCurrent,  successPrev),
-        failed:     pct(failedCurrent,   failedPrev),
-        projects:   pct(projectsCurrent, projectsPrev),
+        nodes:      pct(nodesTotal,    nodesToday),
+        successful: pct(successTotal,  successToday),
+        failed:     pct(failedTotal,   failedToday),
+        projects:   pct(projectsTotal, projectsToday),
       },
     });
   } catch (error) {

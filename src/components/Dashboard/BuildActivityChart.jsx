@@ -13,9 +13,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ReferenceLine,
+  Tooltip
 } from "recharts";
 import { useBuildActivity } from "../../hooks/useBuildActivity";
 
@@ -163,6 +161,12 @@ export default function BuildActivityChart() {
   };
   const series = data?.series ?? [];
 
+  // Avg builds per day — meaningful for any range
+  const nonEmptyDays = series.filter((d) => d.total > 0).length || 1;
+  const avgPerDay = series.length > 0
+    ? Math.round((summary.total / Math.max(series.length, 1)) * 10) / 10
+    : 0;
+
   // Determine max y value for a clean ceiling
   const maxVal = series.reduce((m, d) => Math.max(m, d.total ?? 0), 0);
   const yMax = maxVal === 0 ? 10 : Math.ceil(maxVal * 1.2);
@@ -240,10 +244,10 @@ export default function BuildActivityChart() {
         />
         <SummaryPill
           icon={Zap}
-          label="Active Builds"
-          value={summary.activeBuilds}
-          iconClass="bg-blue-500/15 text-blue-400"
-          valueClass="text-blue-400"
+          label="Avg / Day"
+          value={avgPerDay}
+          iconClass="bg-violet-500/15 text-violet-400"
+          valueClass="text-violet-400"
         />
         <SummaryPill
           icon={RefreshCw}

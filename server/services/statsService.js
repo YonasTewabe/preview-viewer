@@ -161,8 +161,7 @@ export async function refreshSystemStats() {
 }
 
 export async function getSystemStats() {
-  const existing = await Stats.findOne({ where: { key_name: GLOBAL_STATS_KEY } });
-  if (existing) return toStatsDto(existing);
+  // Always recompute from live DB so the dashboard is up-to-date on every load.
   return refreshSystemStats();
 }
 

@@ -98,11 +98,10 @@ const Dashboard = () => {
           <StatsCard
             title="Preview Nodes"
             value={totalNodes}
-            subtitle="Active infrastructure"
             icon={<LayoutGrid size={18} />}
             color="blue"
             trend={trendDir(trends.nodes)}
-            trendValue={trends.nodes ?? "0%"}
+            trendValue={trends.nodes}
             loading={loading}
           />
         </Col>
@@ -110,11 +109,10 @@ const Dashboard = () => {
           <StatsCard
             title="Successful Builds"
             value={successBuilds}
-            subtitle="Passing checks"
             icon={<CheckCircle2 size={18} />}
             color="green"
             trend={trendDir(trends.successful)}
-            trendValue={trends.successful ?? "0%"}
+            trendValue={trends.successful}
             loading={loading}
           />
         </Col>
@@ -122,11 +120,10 @@ const Dashboard = () => {
           <StatsCard
             title="Failed Builds"
             value={failedBuilds}
-            subtitle="Build errors"
             icon={<XCircle size={18} />}
             color="red"
             trend={trendDir(trends.failed)}
-            trendValue={trends.failed ?? "0%"}
+            trendValue={trends.failed}
             loading={loading}
           />
         </Col>
@@ -134,11 +131,10 @@ const Dashboard = () => {
           <StatsCard
             title="Projects"
             value={totalProjects}
-            subtitle="Managed repositories"
             icon={<FolderKanban size={18} />}
             color="blue"
             trend={trendDir(trends.projects)}
-            trendValue={trends.projects ?? "0%"}
+            trendValue={trends.projects}
             loading={loading}
           />
         </Col>
