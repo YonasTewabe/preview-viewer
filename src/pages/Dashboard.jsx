@@ -9,6 +9,7 @@ import {
   AppstoreOutlined,
 } from "@ant-design/icons";
 import StatsCard from "../components/Dashboard/StatsCard";
+import BuildActivityChart from "../components/Dashboard/BuildActivityChart";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/projectService";
 
@@ -226,6 +227,12 @@ const Dashboard = () => {
             color="blue"
             loading={loading}
           />
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 24]}>
+        <Col xs={24}>
+          <BuildActivityChart />
         </Col>
       </Row>
 
