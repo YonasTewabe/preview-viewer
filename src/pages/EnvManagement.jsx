@@ -15,17 +15,13 @@ import {
   Radio,
   message,
   Dropdown,
-  Row,
-  Col,
 } from "antd";
 import {
   LinkOutlined,
   PlusOutlined,
   StarOutlined,
-  CloudOutlined,
-  AppstoreOutlined,
 } from "@ant-design/icons";
-import StatsCard from "../components/Dashboard/StatsCard";
+import PageHeader from "../components/Layout/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -47,20 +43,12 @@ const ADD_AS_EXTRA = "extra";
 const ADD_AS_DEFAULT = "default";
 
 const EnvManagementSkeleton = () => (
-  <div className="space-y-6 text-black dark:text-white">
+  <div className="space-y-6">
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <Skeleton active title={{ width: 280 }} paragraph={{ rows: 1 }} />
       <Skeleton.Button active size="large" style={{ width: 160 }} />
     </div>
-    <Row gutter={[24, 24]}>
-      <Col xs={24} sm={12} lg={6}>
-        <Skeleton active paragraph={{ rows: 2 }} />
-      </Col>
-      <Col xs={24} sm={12} lg={6}>
-        <Skeleton active paragraph={{ rows: 2 }} />
-      </Col>
-    </Row>
-    <Card className="border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <Card style={{ borderColor: "var(--app-border)", background: "var(--app-card)" }}>
       <Skeleton active paragraph={{ rows: 10 }} />
     </Card>
   </div>
@@ -84,10 +72,6 @@ const EnvManagement = () => {
   } = useQuery({
     queryKey: ["projects"],
     queryFn: () => projectService.getProjects(),
-  });
-  const { data: stats = {} } = useQuery({
-    queryKey: ["stats"],
-    queryFn: () => projectService.getStats(),
   });
 
   const filtered = useMemo(() => {
@@ -113,26 +97,14 @@ const EnvManagement = () => {
     return list;
   }, [filtered]);
 
-  const totalProducts = Number(stats.totalProjects) || projects.length;
-  const totalProfiles =
-    Number(stats.totalEnvProfiles) ||
-    projects.reduce((n, p) => n + profilesFor(p).length, 0);
-
   if (isLoading) {
     return <EnvManagementSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="space-y-6 text-black dark:text-white">
-        <div className="mb-6">
-          <h2 className="mb-0 text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-400">
-            Env management
-          </h2>
-          <p className="font-bold text-gray-700 dark:text-gray-300">
-            Environment profiles and defaults for each product
-          </p>
-        </div>
+      <div className="space-y-6">
+        <PageHeader title="Env management" subtitle="Environment profiles and defaults for each product" />
         <Alert
           type="error"
           message="Failed to load environments"
@@ -347,52 +319,18 @@ const EnvManagement = () => {
   ];
 
   return (
-    <div className="space-y-6 text-black dark:text-white">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="mb-0 text-3xl font-bold text-blue-900 dark:text-blue-400">
-            Env management
-          </h2>
-          <p className="font-bold text-gray-700 dark:text-gray-300">
-            Environment profiles and defaults for each product
-          </p>
-          <p className="mt-2 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-            Each row is a product. Profiles shown as tags —{" "}
-            <span className="font-medium">(default)</span> is used for new nodes
-            unless another is chosen on the node screen. Click a profile to edit
-            variables; use <span className="font-medium">Set default</span> in
-            Actions to change the default profile.
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
-          <Button size="large" className="w-full sm:w-auto" onClick={() => navigate("/projects")}>
+    <div className="space-y-6">
+      <PageHeader
+        title="Env management"
+        subtitle="Environment profiles and defaults for each product"
+        actions={
+          <Button size="large" onClick={() => navigate("/projects")}>
             Go to Projects
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      <Row gutter={[24, 24]} className="mb-2">
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
-            title="Products"
-            value={totalProducts}
-            icon={<AppstoreOutlined />}
-            color="blue"
-            loading={false}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatsCard
-            title="Environment profiles"
-            value={totalProfiles}
-            icon={<CloudOutlined />}
-            color="blue"
-            loading={false}
-          />
-        </Col>
-      </Row>
-
-      <Card className="mb-4 border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="mb-4" style={{ borderColor: "var(--app-border)", background: "var(--app-card)" }}>
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex w-full flex-1 gap-2 sm:w-auto">
             <Search

@@ -34,6 +34,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import DeployProgressModal from "../components/DeployProgressModal";
 import BuildProgressModal from "../components/BuildProgressModal";
+import PageHeader from "../components/Layout/PageHeader";
 import {
   useDeletePreviewNode,
   usePreviewNode,
@@ -1190,121 +1191,54 @@ export default function NodeConfigView({
   }
   return (
     <>
-      <div style={{ marginBottom: "16px" }}>
-        <Button
-          type="link"
-          icon={<ArrowLeftOutlined />}
-          onClick={() =>
-            navigate(`/projects/${routeProjectId ?? selectedNode?.project_id}`)
-          }
-          className="!font-semibold !text-base sm:!text-lg"
-          style={{ color: "var(--app-text)" }}
-        >
-          Back
-        </Button>
-      </div>
-      <Card
-        className="p-4 border-b"
-        style={{
-          backgroundColor: "var(--app-surface)",
-          borderColor: "var(--app-border)",
-        }}
-      >
-        <div
-          data-node-header-actions=""
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <Title
-            level={3}
-            className="!mb-0 user-select-none font-semibold sm:!text-3xl"
-          >
-            Node Configuration
-          </Title>
-
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate(`/projects/${routeProjectId ?? selectedNode?.project_id}`)}
+              className="!p-0 !h-auto"
+              style={{ color: "var(--app-text-muted)" }}
+            />
+            {selectedNode?.service_name ?? "Node Configuration"}
+          </span>
+        }
+        subtitle={selectedNode?.branch_name ? `Branch: ${selectedNode.branch_name}` : "Node configuration"}
+        actions={
           <Space wrap>
             {isPreviewServiceNode &&
               (selectedNode?.preview_link == null ? (
-                <Tooltip
-                  title={
-                    !projectEnvsReady
-                      ? "Configure project environments first."
-                      : undefined
-                  }
-                >
+                <Tooltip title={!projectEnvsReady ? "Configure project environments first." : undefined}>
                   <span style={{ display: "inline-block" }}>
-                    <Button
-                      type="primary"
-                      icon={<RocketOutlined />}
-                      onClick={handleDeploy}
-                      disabled={!projectEnvsReady}
-                      style={{
-                        backgroundColor: "#3b82f6",
-                        borderColor: "#3b82f6",
-                      }}
-                    >
+                    <Button type="primary" icon={<RocketOutlined />} onClick={handleDeploy} disabled={!projectEnvsReady}>
                       Deploy Node
                     </Button>
                   </span>
                 </Tooltip>
               ) : (
-                <Tooltip
-                  title={
-                    !projectEnvsReady
-                      ? "Configure project environments first."
-                      : undefined
-                  }
-                >
+                <Tooltip title={!projectEnvsReady ? "Configure project environments first." : undefined}>
                   <span style={{ display: "inline-block" }}>
-                    <Button
-                      type="primary"
-                      icon={<ReloadOutlined />}
-                      onClick={handleRebuild}
-                      disabled={!projectEnvsReady}
-                      style={{
-                        backgroundColor: "#3b82f6",
-                        borderColor: "#3b82f6",
-                      }}
-                    >
+                    <Button type="primary" icon={<ReloadOutlined />} onClick={handleRebuild} disabled={!projectEnvsReady}>
                       Rebuild Node
                     </Button>
                   </span>
                 </Tooltip>
               ))}
             <Popconfirm
-              title={`Delete “${selectedNode?.service_name}” node?`}
+              title={`Delete "${selectedNode?.service_name}" node?`}
               okText="Delete"
               cancelText="Cancel"
               okButtonProps={{ danger: true }}
               placement="bottomRight"
-              getPopupContainer={(trigger) =>
-                trigger.closest?.("[data-node-header-actions]") ??
-                trigger.parentElement ??
-                document.body
-              }
               onConfirm={handleDeleteNode}
             >
-              <span
-                className="inline-block"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  icon={<DeleteOutlined />}
-                  danger
-                  className="!text-white !bg-[#ef4444] "
-                >
-                  Delete Node
-                </Button>
-              </span>
+              <Button icon={<DeleteOutlined />} danger>Delete Node</Button>
             </Popconfirm>
           </Space>
-        </div>
-      </Card>
+        }
+      />
+
 
       <Content
         style={{
@@ -1322,77 +1256,31 @@ export default function NodeConfigView({
             style={{
               marginBottom: "24px",
               borderRadius: 8,
-              border: "1px solid #e2e8f0",
+              border: "1px solid var(--app-border)",
             }}
           >
             <Row gutter={[24, 16]}>
               {/* Left: name + branch */}
               <Col xs={24} md={12}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "16px",
-                  }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div>
-                    <Text
-                      strong
-                      style={{
-                        fontSize: "12px",
-                        color: "#64748b",
-                        display: "block",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <Text strong style={{ fontSize: "12px", color: "var(--app-text-muted)", display: "block", marginBottom: "4px" }}>
                       Node Name
                     </Text>
                     <Input
-                      value={
-                        selectedNode.service_name
-                          ? String(selectedNode.service_name)
-                          : "—"
-                      }
+                      value={selectedNode.service_name ? String(selectedNode.service_name) : "—"}
                       readOnly
-                      style={{
-                        backgroundColor: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        color: "#64748b",
-                      }}
+                      style={{ borderRadius: "6px", fontSize: "12px" }}
                     />
                   </div>
                   <div>
-                    <Text
-                      strong
-                      style={{
-                        fontSize: "12px",
-                        color: "#64748b",
-                        display: "block",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <Text strong style={{ fontSize: "12px", color: "var(--app-text-muted)", display: "block", marginBottom: "4px" }}>
                       Branch
                     </Text>
                     <Input
-                      value={
-                        selectedNode.branch_name ||
-                        selectedNode.branches?.[0]?.name
-                          ? String(
-                              selectedNode.branch_name ||
-                                selectedNode.branches?.[0]?.name,
-                            )
-                          : "—"
-                      }
+                      value={selectedNode.branch_name || selectedNode.branches?.[0]?.name ? String(selectedNode.branch_name || selectedNode.branches?.[0]?.name) : "—"}
                       readOnly
-                      style={{
-                        backgroundColor: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        color: "#64748b",
-                      }}
+                      style={{ borderRadius: "6px", fontSize: "12px" }}
                     />
                   </div>
                 </div>
@@ -1400,56 +1288,22 @@ export default function NodeConfigView({
 
               {/* Right: preview link + port */}
               <Col xs={24} md={12}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
-                    <Text
-                      strong
-                      style={{
-                        fontSize: "12px",
-                        color: "#64748b",
-                        display: "block",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <Text strong style={{ fontSize: "12px", color: "var(--app-text-muted)", display: "block", marginBottom: "4px" }}>
                       Preview Link
                     </Text>
                     <Input.Group compact style={{ display: "flex" }}>
                       <Input
-                        value={
-                          selectedNode.preview_link
-                            ? selectedNode.preview_link
-                            : "—"
-                        }
+                        value={selectedNode.preview_link ? selectedNode.preview_link : "—"}
                         readOnly
-                        style={{
-                          backgroundColor: "#f8fafc",
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "6px 0 0 6px",
-                          fontSize: "12px",
-                          color: "#64748b",
-                          flex: 1,
-                        }}
+                        style={{ borderRadius: "6px 0 0 6px", fontSize: "12px", flex: 1 }}
                       />
                       <Button
                         icon={<CopyOutlined />}
                         disabled={!selectedNode.preview_link}
-                        onClick={() =>
-                          selectedNode.preview_link &&
-                          copyToClipboard(selectedNode.preview_link)
-                        }
-                        style={{
-                          borderRadius: "0",
-                          borderLeft: "none",
-                          backgroundColor: "#f8fafc",
-                          borderColor: "#e2e8f0",
-                          color: "#64748b",
-                        }}
+                        onClick={() => selectedNode.preview_link && copyToClipboard(selectedNode.preview_link)}
+                        style={{ borderRadius: "0", borderLeft: "none" }}
                       >
                         Copy
                       </Button>
@@ -1459,46 +1313,20 @@ export default function NodeConfigView({
                         href={selectedNode.preview_link ?? undefined}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{
-                          borderRadius: "0 6px 6px 0",
-                          borderLeft: "none",
-                          backgroundColor: "#f8fafc",
-                          borderColor: "#e2e8f0",
-                          color: "#64748b",
-                        }}
+                        style={{ borderRadius: "0 6px 6px 0", borderLeft: "none" }}
                       >
                         Go to
                       </Button>
                     </Input.Group>
                   </div>
                   <div>
-                    <Text
-                      strong
-                      style={{
-                        fontSize: "12px",
-                        color: "#64748b",
-                        display: "block",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <Text strong style={{ fontSize: "12px", color: "var(--app-text-muted)", display: "block", marginBottom: "4px" }}>
                       Preview port
                     </Text>
                     <Input
-                      value={
-                        selectedNode.port != null &&
-                        Number.isFinite(Number(selectedNode.port))
-                          ? String(selectedNode.port)
-                          : "—"
-                      }
+                      value={selectedNode.port != null && Number.isFinite(Number(selectedNode.port)) ? String(selectedNode.port) : "—"}
                       readOnly
-                      style={{
-                        backgroundColor: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontFamily: "monospace",
-                        color: "#64748b",
-                      }}
+                      style={{ borderRadius: "6px", fontSize: "12px", fontFamily: "monospace" }}
                     />
                   </div>
                 </div>
@@ -1513,19 +1341,9 @@ export default function NodeConfigView({
             <Card
               title="Environment variables"
               bordered={false}
-              style={{
-                marginBottom: "24px",
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-              }}
+              style={{ marginBottom: "24px", borderRadius: 8, border: "1px solid var(--app-border)" }}
             >
-              <div
-                style={{
-                  marginBottom: 20,
-                  paddingBottom: 16,
-                  borderBottom: "1px solid #e2e8f0",
-                }}
-              >
+              <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--app-border)" }}>
                 <Text strong style={{ display: "block", marginBottom: 6 }}>
                   Profile for this node
                 </Text>
@@ -1535,11 +1353,7 @@ export default function NodeConfigView({
                       <Select
                         size="large"
                         style={{ minWidth: 260 }}
-                        value={
-                          nodeProfileId ??
-                          projectEnvVarsResp?.profile_id ??
-                          undefined
-                        }
+                        value={nodeProfileId ?? projectEnvVarsResp?.profile_id ?? undefined}
                         options={envProfileSelectOptions}
                         placeholder="Choose profile to preview"
                         onChange={(v) => setNodeProfileId(v)}
@@ -1555,12 +1369,8 @@ export default function NodeConfigView({
                     </Space>
                     <Space wrap style={{ marginTop: 10 }}>
                       {profileSelectionDirty ? (
-                        <Tag
-                          color="warning"
-                          style={{ marginInlineEnd: 0, borderRadius: "4px" }}
-                        >
-                          Unsaved — previewing{" "}
-                          {projectEnvVarsResp?.profile?.name ?? "…"}
+                        <Tag color="warning" style={{ marginInlineEnd: 0, borderRadius: "4px" }}>
+                          Unsaved — previewing {projectEnvVarsResp?.profile?.name ?? "…"}
                         </Tag>
                       ) : null}
                     </Space>
@@ -1582,40 +1392,10 @@ export default function NodeConfigView({
                     tableLayout="fixed"
                     rowKey={(r) => r.key}
                     dataSource={projectEnvVars}
-                    pagination={
-                      projectEnvVars.length > 10 ? { pageSize: 10 } : false
-                    }
+                    pagination={projectEnvVars.length > 10 ? { pageSize: 10 } : false}
                     columns={[
-                      {
-                        title: "Key",
-                        dataIndex: "key",
-                        key: "key",
-                        width: "32%",
-                        ellipsis: true,
-                        render: (v) => (
-                          <span style={{ fontFamily: "monospace" }}>{v}</span>
-                        ),
-                      },
-                      {
-                        title: "Value",
-                        dataIndex: "value",
-                        key: "value",
-                        ellipsis: false,
-                        render: (v) => (
-                          <span
-                            style={{
-                              display: "block",
-                              fontFamily: "monospace",
-                              fontSize: 12,
-                              whiteSpace: "pre-wrap",
-                              overflowWrap: "anywhere",
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            {String(v ?? "")}
-                          </span>
-                        ),
-                      },
+                      { title: "Key", dataIndex: "key", key: "key", width: "32%", ellipsis: true, render: (v) => <span style={{ fontFamily: "monospace" }}>{v}</span> },
+                      { title: "Value", dataIndex: "value", key: "value", ellipsis: false, render: (v) => <span style={{ display: "block", fontFamily: "monospace", fontSize: 12, whiteSpace: "pre-wrap", overflowWrap: "anywhere", wordBreak: "break-word" }}>{String(v ?? "")}</span> },
                     ]}
                     scroll={{ x: 680 }}
                   />
@@ -1630,19 +1410,11 @@ export default function NodeConfigView({
                       showSearch
                       optionFilterProp="label"
                       allowClear={!editingOverrideKey}
-                      placeholder={
-                        allOverrideKeyPool.length === 0
-                          ? "Define keys on this or the default profile in Manage variables"
-                          : editingOverrideKey
-                            ? "Env key"
-                            : "Key from this profile or default profile"
-                      }
+                      placeholder={allOverrideKeyPool.length === 0 ? "Define keys on this or the default profile in Manage variables" : editingOverrideKey ? "Env key" : "Key from this profile or default profile"}
                       value={overrideKey || undefined}
                       onChange={(val) => setOverrideKey(val ?? "")}
                       options={overrideKeySelectOptions}
-                      disabled={
-                        !editingOverrideKey && allOverrideKeyPool.length === 0
-                      }
+                      disabled={!editingOverrideKey && allOverrideKeyPool.length === 0}
                       style={{ width: "100%" }}
                     />
                     <Input.TextArea
@@ -1654,13 +1426,7 @@ export default function NodeConfigView({
                     />
                     <Space wrap>
                       {editingOverrideKey ? (
-                        <Button
-                          onClick={() => {
-                            setEditingOverrideKey(null);
-                            setOverrideKey("");
-                            setOverrideValue("");
-                          }}
-                        >
+                        <Button onClick={() => { setEditingOverrideKey(null); setOverrideKey(""); setOverrideValue(""); }}>
                           Cancel
                         </Button>
                       ) : null}
@@ -1668,10 +1434,7 @@ export default function NodeConfigView({
                         type="primary"
                         loading={savingOverride}
                         onClick={saveNodeOverride}
-                        disabled={
-                          !editingOverrideKey &&
-                          overrideKeySelectOptions.length === 0
-                        }
+                        disabled={!editingOverrideKey && overrideKeySelectOptions.length === 0}
                       >
                         {editingOverrideKey ? "Update" : "Add"}
                       </Button>
@@ -1684,63 +1447,17 @@ export default function NodeConfigView({
                       tableLayout="fixed"
                       rowKey={(r) => r.key}
                       dataSource={nodeEnvVars}
-                      pagination={
-                        nodeEnvVars.length > 10 ? { pageSize: 10 } : false
-                      }
+                      pagination={nodeEnvVars.length > 10 ? { pageSize: 10 } : false}
                       columns={[
+                        { title: "Key", dataIndex: "key", key: "key", width: "28%", ellipsis: true, render: (v) => <span style={{ fontFamily: "monospace" }}>{v}</span> },
+                        { title: "Value", dataIndex: "value", key: "value", ellipsis: false, render: (v) => <span style={{ display: "block", fontFamily: "monospace", fontSize: 12, whiteSpace: "pre-wrap", overflowWrap: "anywhere", wordBreak: "break-word" }}>{String(v ?? "")}</span> },
                         {
-                          title: "Key",
-                          dataIndex: "key",
-                          key: "key",
-                          width: "28%",
-                          ellipsis: true,
-                          render: (v) => (
-                            <span style={{ fontFamily: "monospace" }}>{v}</span>
-                          ),
-                        },
-                        {
-                          title: "Value",
-                          dataIndex: "value",
-                          key: "value",
-                          ellipsis: false,
-                          render: (v) => (
-                            <span
-                              style={{
-                                display: "block",
-                                fontFamily: "monospace",
-                                fontSize: 12,
-                                whiteSpace: "pre-wrap",
-                                overflowWrap: "anywhere",
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              {String(v ?? "")}
-                            </span>
-                          ),
-                        },
-                        {
-                          title: "Action",
-                          key: "action",
-                          width: 110,
+                          title: "Action", key: "action", width: 110,
                           render: (_, record) => (
                             <Space size="small">
-                              <Button
-                                type="text"
-                                icon={<EditOutlined />}
-                                onClick={() => startEditOverride(record)}
-                              />
-                              <Popconfirm
-                                title="Delete override?"
-                                okText="Delete"
-                                okType="danger"
-                                cancelText="Cancel"
-                                onConfirm={() => deleteOverride(record.key)}
-                              >
-                                <Button
-                                  danger
-                                  type="text"
-                                  icon={<DeleteOutlined />}
-                                />
+                              <Button type="text" icon={<EditOutlined />} onClick={() => startEditOverride(record)} />
+                              <Popconfirm title="Delete override?" okText="Delete" okType="danger" cancelText="Cancel" onConfirm={() => deleteOverride(record.key)}>
+                                <Button danger type="text" icon={<DeleteOutlined />} />
                               </Popconfirm>
                             </Space>
                           ),
@@ -1749,76 +1466,36 @@ export default function NodeConfigView({
                       scroll={{ x: 680 }}
                     />
                   </div>
-                  <div style={{ marginTop: 8, color: "#64748b", fontSize: 12 }}>
-                    Overrides take precedence over project envs when
-                    deploying/rebuilding.
+                  <div style={{ marginTop: 8, color: "var(--app-text-muted)", fontSize: 12 }}>
+                    Overrides take precedence over project envs when deploying/rebuilding.
                   </div>
                 </Col>
               </Row>
             </Card>
 
             <Card
-              title={
-                <Space align="center">
-                  <HistoryOutlined className="text-blue-600" />
-                  <span>Build history</span>
-                </Space>
-              }
+              title={<Space align="center"><HistoryOutlined className="text-blue-600" /><span>Build history</span></Space>}
               bordered={false}
-              style={{
-                borderRadius: 12,
-                boxShadow:
-                  "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-                border: "1px solid #e2e8f0",
-              }}
+              style={{ borderRadius: 12, border: "1px solid var(--app-border)" }}
             >
               <Table
                 size="small"
-                rowKey={(r) =>
-                  r.id ??
-                  `${r.build_number}-${r.jenkins_build_number ?? ""}-${r.built_at}`
-                }
-                pagination={
-                  buildHistoryRows.length > 15 ? { pageSize: 15 } : false
-                }
+                rowKey={(r) => r.id ?? `${r.build_number}-${r.jenkins_build_number ?? ""}-${r.built_at}`}
+                pagination={buildHistoryRows.length > 15 ? { pageSize: 15 } : false}
                 dataSource={buildHistoryRows}
-                locale={{
-                  emptyText: "No builds recorded yet.",
-                }}
+                locale={{ emptyText: "No builds recorded yet." }}
                 columns={[
                   {
-                    title: "Node build #",
-                    dataIndex: "build_number",
-                    key: "build_number",
-                    width: 200,
+                    title: "Node build #", dataIndex: "build_number", key: "build_number", width: 200,
                     render: (n, row) => (
                       <span>
                         <span style={{ fontFamily: "monospace" }}>{n}</span>
-                        {row.jenkins_build_number != null && (
-                          <Text
-                            type="secondary"
-                            style={{ marginLeft: 8, fontSize: 12 }}
-                          >
-                            (Jenkins {row.jenkins_build_number})
-                          </Text>
-                        )}
+                        {row.jenkins_build_number != null && <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>(Jenkins {row.jenkins_build_number})</Text>}
                       </span>
                     ),
                   },
-                  {
-                    title: "Status",
-                    dataIndex: "status",
-                    key: "status",
-                    width: 120,
-                    render: (s) => buildHistoryStatusTag(s ?? "success"),
-                  },
-                  {
-                    title: "Build time",
-                    dataIndex: "built_at",
-                    key: "built_at",
-                    render: (d) =>
-                      d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : "—",
-                  },
+                  { title: "Status", dataIndex: "status", key: "status", width: 120, render: (s) => buildHistoryStatusTag(s ?? "success") },
+                  { title: "Build time", dataIndex: "built_at", key: "built_at", render: (d) => d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : "—" },
                 ]}
                 scroll={{ x: 760 }}
               />
@@ -1834,35 +1511,19 @@ export default function NodeConfigView({
         previewLink={deploymentDetails?.previewLink}
         onCancel={() => {
           setIsDeployModalVisible(false);
-          setDeployProgress({
-            stage: "",
-            message: "",
-            buildNumber: null,
-          });
-          setDeploymentDetails({
-            previewLink: null,
-            portNumber: null,
-          });
+          setDeployProgress({ stage: "", message: "", buildNumber: null });
+          setDeploymentDetails({ previewLink: null, portNumber: null });
         }}
         onSuccess={() => {
           const isDelete = deployProgress.message?.includes("deleted") ?? false;
           setIsDeployModalVisible(false);
-          setDeployProgress({
-            stage: "",
-            message: "",
-            buildNumber: null,
-          });
-          setDeploymentDetails({
-            previewLink: null,
-            portNumber: null,
-          });
-          if (isDelete) {
-            navigate("/");
-          }
+          setDeployProgress({ stage: "", message: "", buildNumber: null });
+          setDeploymentDetails({ previewLink: null, portNumber: null });
+          if (isDelete) navigate("/");
         }}
       />
 
-      {/* Build progress modal — same UX as deploy (DeployProgressModal) */}
+      {/* Build progress modal */}
       <BuildProgressModal
         isVisible={isBuildModalVisible}
         buildProgress={buildProgress}

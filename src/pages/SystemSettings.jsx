@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Button, Card, Form, Input, Tabs, Typography, message } from "antd";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import configurationService from "../services/configurationService";
+import PageHeader from "../components/Layout/PageHeader";
 
 const { Title, Text } = Typography;
 
@@ -58,7 +59,7 @@ function SettingsTab({ title, description, fields, queryKey, load, save }) {
   const loadedFields = fields;
 
   return (
-    <Card className="border-zinc-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <Card style={{ borderColor: "var(--app-border)", background: "var(--app-card)" }}>
       <div className="mb-4">
         <Title level={4} className="!mb-1">
           {title}
@@ -167,15 +168,8 @@ const systemFields = [
 
 const SystemSettings = () => {
   return (
-    <div className="space-y-6 text-black dark:text-white">
-      <div className="mb-2">
-        <h2 className="mb-0 text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-400">
-          System settings
-        </h2>
-        <p className="font-bold text-gray-700 dark:text-gray-300">
-          Manage your system configuration
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="System settings" subtitle="Manage your system configuration" />
 
       <Tabs
         defaultActiveKey="jenkins"

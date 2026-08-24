@@ -6,6 +6,7 @@ import ProjectCard from "../Profile/ProjectCard";
 import AddProjectModal from "./AddProjectModal";
 import { useProjects } from "../../hooks/useProjects";
 import { App } from "antd";
+import PageHeader from "../Layout/PageHeader";
 
 const PAGE_SIZE = 9;
 
@@ -108,76 +109,49 @@ const MyProjects = () => {
     <div className="space-y-5" style={{ color: "var(--app-text)" }}>
 
       {/* ── Page header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--app-text)" }}>
-            All projects
-          </h1>
-          <p className="text-sm" style={{ color: "var(--app-text-muted)" }}>
-            {filtered.length} {filtered.length === 1 ? "result" : "results"}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div
-            className="flex items-center gap-2 rounded-lg border px-3 py-1.5"
-            style={{
-              borderColor: "var(--app-border)",
-              background:  "var(--app-surface)",
-            }}
-          >
-            <Search size={13} style={{ color: "var(--app-text-muted)" }} />
-            <input
-              type="text"
-              placeholder="Search by name or tag..."
-              value={inputVal}
-              onChange={(e) => setInputVal(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && commitSearch(inputVal)}
-              onBlur={() => commitSearch(inputVal)}
-              className="w-48 bg-transparent text-sm outline-none placeholder:text-zinc-500"
-              style={{ color: "var(--app-text)" }}
-            />
-          </div>
-
-          {/* Tag filter tabs */}
-          <div
-            className="flex rounded-lg p-0.5"
-            style={{
-              border:     "1px solid var(--app-border)",
-              background: "var(--app-surface)",
-            }}
-          >
-            <FilterTab
-              label="All"
-              count={projects.length}
-              active={tagFilter === "all"}
-              onClick={() => handleTagFilter("all")}
-            />
-            <FilterTab
-              label="Frontend"
-              count={tagCounts.frontend}
-              active={tagFilter === "frontend"}
-              onClick={() => handleTagFilter("frontend")}
-            />
-            <FilterTab
-              label="Backend"
-              count={tagCounts.backend}
-              active={tagFilter === "backend"}
-              onClick={() => handleTagFilter("backend")}
-            />
-          </div>
-
-          {/* Add project */}
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => { setEditingProject(null); setIsModalOpen(true); }}
-          >
-            New project
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="All projects"
+        subtitle={`${filtered.length} ${filtered.length === 1 ? "result" : "results"}`}
+        actions={
+          <>
+            {/* Search */}
+            <div
+              className="flex items-center gap-2 rounded-lg border px-3 py-1.5"
+              style={{ borderColor: "var(--app-border)", background: "var(--app-surface)" }}
+            >
+              <Search size={13} style={{ color: "var(--app-text-muted)" }} />
+              <input
+                type="text"
+                placeholder="Search by name or tag..."
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && commitSearch(inputVal)}
+                onBlur={() => commitSearch(inputVal)}
+                className="w-48 bg-transparent text-sm outline-none placeholder:text-zinc-500"
+                style={{ color: "var(--app-text)" }}
+              />
+            </div>
+            {/* Tag filter tabs */}
+            <div
+              className="flex rounded-lg p-0.5"
+              style={{ border: "1px solid var(--app-border)", background: "var(--app-surface)" }}
+            >
+              {["all", "frontend", "backend"].map((s) => (
+                <FilterTab
+                  key={s}
+                  label={s.charAt(0).toUpperCase() + s.slice(1)}
+                  count={s === "all" ? projects.length : tagCounts[s]}
+                  active={tagFilter === s}
+                  onClick={() => handleTagFilter(s)}
+                />
+              ))}
+            </div>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingProject(null); setIsModalOpen(true); }}>
+              New project
+            </Button>
+          </>
+        }
+      />
 
       {/* ── Grid ── */}
       {loading ? (

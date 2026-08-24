@@ -182,23 +182,6 @@ const UserFormModal = ({
               </Form.Item>
             </Col>
           </Row>
-
-          {initialValues && (
-            <div className="bg-gray-50 p-4 rounded-lg mt-6">
-              <div className="text-sm text-gray-600">
-                <div className="flex justify-between items-center">
-                  <span>User ID:</span>
-                  <span className="font-medium">#{initialValues.id}</span>
-                </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span>Created:</span>
-                  <span className="font-medium">
-                    {new Date(initialValues.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </Form>
       </div>
     </Modal>

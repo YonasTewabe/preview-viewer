@@ -30,6 +30,7 @@ import {
   invalidateAndRefetchActive,
   queryKeyPart,
 } from "../../utils/invalidateQueries";
+import PageHeader from "../Layout/PageHeader";
 
 // Skeleton Component for ProjectDetail
 const ProjectDetailSkeleton = () => {
@@ -257,141 +258,75 @@ const ProjectDetail = () => {
 
   return (
     <div className="pb-8">
-      <div className="mb-4 flex item-center gap-4">
-        <Button
-          className="!font-semibold !text-base sm:!text-lg"
-          style={{ color: "var(--app-text)" }}
-          type="link"
-          onClick={() => navigate("/projects")}
-          icon={<ArrowLeftOutlined />}
-        >
-          Back
-        </Button>
-      </div>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/projects")}
+              className="!p-0 !h-auto !font-semibold"
+              style={{ color: "var(--app-text-muted)" }}
+            />
+            {name}
+          </span>
+        }
+        subtitle={description}
+        actions={
+          <>
+            {repository_url && (
+              <Tooltip title="Open repository in new tab">
+                <a href={repository_url} target="_blank" rel="noopener noreferrer">
+                  <Button>Go to git Repository</Button>
+                </a>
+              </Tooltip>
+            )}
+            <Popover
+              open={deletePopoverOpen}
+              onOpenChange={setDeletePopoverOpen}
+              placement="bottomRight"
+              trigger={[]}
+              arrow={false}
+              getPopupContainer={() => actionsWrapRef.current ?? document.body}
+              content={
+                <div style={{ maxWidth: 300 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Delete this project?</div>
+                  <p style={{ marginBottom: 12 }}>
+                    Are you sure you want to delete <strong>{name}</strong>?
+                  </p>
+                  <Space style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                    <Button size="small" onClick={() => setDeletePopoverOpen(false)}>Cancel</Button>
+                    <Button size="small" type="primary" danger onClick={async () => { setDeletePopoverOpen(false); await runDeleteProject(); }}>Delete</Button>
+                  </Space>
+                </div>
+              }
+            >
+              <span ref={actionsWrapRef} className="inline-flex">
+                <Dropdown
+                  open={actionsMenuOpen}
+                  onOpenChange={setActionsMenuOpen}
+                  trigger={["click"]}
+                  placement="bottomRight"
+                  menu={{
+                    items: [
+                      { key: "edit", label: "Edit", icon: <EditOutlined />, onClick: () => { setActionsMenuOpen(false); setIsModalVisible(true); } },
+                      { key: "delete", label: "Delete", icon: <DeleteOutlined />, danger: true, onClick: () => { setActionsMenuOpen(false); window.setTimeout(() => setDeletePopoverOpen(true), 0); } },
+                    ],
+                  }}
+                >
+                  <Button type="default" icon={<MoreOutlined />} aria-label="Project actions" />
+                </Dropdown>
+              </span>
+            </Popover>
+          </>
+        }
+      />
       <div className="grid md:grid-cols-12 gap-4">
-        {/* Details Section */}
-        <Card className="md:col-span-12 col-span-1">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <h1
-                className="truncate text-xl sm:text-2xl font-semibold"
-                style={{ color: "var(--app-text)" }}
-              >
-                {name}
-              </h1>
-              <h4
-                className="mt-1 break-words text-sm"
-                style={{ color: "var(--app-text-muted)" }}
-              >
-                {description}
-              </h4>
-            </div>
-
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-              {repository_url && (
-                <Tooltip title="Open repository in new tab">
-                  <a
-                    href={repository_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button>Go to git Repository</Button>
-                  </a>
-                </Tooltip>
-              )}
-              <Popover
-                open={deletePopoverOpen}
-                onOpenChange={setDeletePopoverOpen}
-                placement="bottomRight"
-                trigger={[]}
-                arrow={false}
-                getPopupContainer={() =>
-                  actionsWrapRef.current ?? document.body
-                }
-                content={
-                  <div style={{ maxWidth: 300 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 8 }}>
-                      Delete this project?
-                    </div>
-                    <p style={{ marginBottom: 12 }}>
-                      Are you sure you want to delete <strong>{name}</strong>?
-                    </p>
-                    <Space
-                      style={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        width: "100%",
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        onClick={() => setDeletePopoverOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="small"
-                        type="primary"
-                        danger
-                        onClick={async () => {
-                          setDeletePopoverOpen(false);
-                          await runDeleteProject();
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </Space>
-                  </div>
-                }
-              >
-                <span ref={actionsWrapRef} className="inline-flex">
-                  <Dropdown
-                    open={actionsMenuOpen}
-                    onOpenChange={setActionsMenuOpen}
-                    trigger={["click"]}
-                    placement="bottomRight"
-                    menu={{
-                      items: [
-                        {
-                          key: "edit",
-                          label: "Edit",
-                          icon: <EditOutlined />,
-                          onClick: () => {
-                            setActionsMenuOpen(false);
-                            setIsModalVisible(true);
-                          },
-                        },
-                        {
-                          key: "delete",
-                          label: "Delete",
-                          icon: <DeleteOutlined />,
-                          danger: true,
-                          onClick: () => {
-                            setActionsMenuOpen(false);
-                            window.setTimeout(
-                              () => setDeletePopoverOpen(true),
-                              0,
-                            );
-                          },
-                        },
-                      ],
-                    }}
-                  >
-                    <Button
-                      type="default"
-                      icon={<MoreOutlined />}
-                      aria-label="Project actions"
-                    />
-                  </Dropdown>
-                </span>
-              </Popover>
-            </div>
-          </div>
-        </Card>
 
         {/* Environments Section - Link to dedicated page */}
         <Card
           className="md:col-span-12 col-span-1"
+          style={{ borderColor: "var(--app-border)" }}
           title={
             <div className="flex items-center gap-2">
               <EnvironmentOutlined className="text-blue-600" />
@@ -468,6 +403,7 @@ const ProjectDetail = () => {
         <Card
           bodyStyle={{ padding: "0px" }}
           className="md:col-span-12 col-span-1"
+          style={{ borderColor: "var(--app-border)" }}
         >
           <Home project={data} />
         </Card>

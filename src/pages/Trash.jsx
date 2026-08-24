@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Input, Popconfirm, Space, Table, Tabs, Tag } from "antd";
 import { projectService } from "../services/projectService";
+import PageHeader from "../components/Layout/PageHeader";
 
 function stripDeletedToken(value) {
   return String(value ?? "")
@@ -183,15 +184,8 @@ const Trash = () => {
   );
 
   return (
-    <div className="space-y-6 text-black dark:text-white">
-      <div className="mb-2">
-        <h2 className="mb-0 text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-400">
-          Trash
-        </h2>
-        <p className="font-bold text-gray-700 dark:text-gray-300">
-          View deleted items
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Trash" subtitle="Restore or permanently delete items" />
 
       <Tabs
         defaultActiveKey="nodes"

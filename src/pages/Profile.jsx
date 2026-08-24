@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import { Card, Form, Input, Button, Tabs, Typography } from "antd";
+import { Card, Form, Input, Button, Tabs } from "antd";
+import PageHeader from "../components/Layout/PageHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useChangePassword, useUpdateUser } from "../hooks/useUsers";
-
-const { Title, Text } = Typography;
 
 const Profile = () => {
   const { user, updateStoredUser } = useAuth();
@@ -68,19 +67,19 @@ const Profile = () => {
           className="mt-2"
         >
           <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter your name" }]}
+          >
+            <Input size="large" />
+          </Form.Item>
+          <Form.Item
             label="Email"
             name="email"
             rules={[
               { required: true, message: "Please enter your email" },
               { type: "email", message: "Please enter a valid email address" },
             ]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: "Please enter your name" }]}
           >
             <Input size="large" />
           </Form.Item>
@@ -157,15 +156,11 @@ const Profile = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Title level={2} className="app-page-title !mb-1">
-          Profile
-        </Title>
-        <Text className="app-muted">
-          Manage your account information and password.
-        </Text>
-      </div>
-      <Card className="max-w-3xl">
+      <PageHeader
+        title="Profile"
+        subtitle="Manage your account information and password."
+      />
+      <Card className="max-w-3xl" style={{ borderColor: "var(--app-border)", background: "var(--app-card)" }}>
         <Tabs defaultActiveKey="info" items={tabItems} />
       </Card>
     </div>

@@ -56,7 +56,7 @@ const COLOR = {
 function TrendChip({ trend, trendValue }) {
   if (!trendValue) return null;
 
-  const isDown = trend === "down";
+  const isDown    = trend === "down";
   const isNeutral = !trend || trendValue === "0%";
 
   const chipClass = isNeutral
@@ -65,11 +65,7 @@ function TrendChip({ trend, trendValue }) {
       ? "bg-rose-500/15 text-rose-400"
       : "bg-emerald-500/15 text-emerald-400";
 
-  const Icon = !isNeutral && trend === "up"
-    ? TrendingUp
-    : !isNeutral && isDown
-      ? TrendingDown
-      : Minus;
+  const Icon = isNeutral ? Minus : isDown ? TrendingDown : TrendingUp;
 
   return (
     <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${chipClass}`}>
@@ -156,7 +152,7 @@ const StatsCard = ({
             className="text-xs"
             style={{ color: "var(--app-text-muted, #94a3b8)" }}
           >
-            vs last 30 days
+            vs yesterday
           </span>
         </div>
       )}
