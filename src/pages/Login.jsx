@@ -75,7 +75,7 @@ const Login = () => {
                 className="!mb-0 font-bold"
                 style={{ color: "var(--app-text)" }}
               >
-                Preview Builder
+                Preview Branch Deployer
               </Title>
             </div>
           </div>

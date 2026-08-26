@@ -3,7 +3,7 @@
     "lastUpdated": null,
     "version": "1.0",
     "metadata": {
-        "description": "Backend services configuration for preview builder",
+        "description": "Backend services configuration for preview branch deployer",
         "createdAt": null,
         "totalServices": 0,
         "totalBranches": 0

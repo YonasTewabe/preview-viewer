@@ -1,4 +1,4 @@
-# Database Setup for Preview Builder
+# Database Setup for Preview Branch Deployer
 
 This project now supports PostgreSQL database for storing projects, users, backend nodes, and frontend nodes data.
 

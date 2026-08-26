@@ -124,7 +124,7 @@ class EmailService {
       const mailOptions = {
         from: process.env.FROM_EMAIL,
         to: user.email,
-        subject: 'Welcome to Preview Builder!',
+        subject: 'Welcome to Preview Branch Deployer!',
         html: this.generateWelcomeEmailTemplate(user),
       };
 
@@ -155,7 +155,7 @@ class EmailService {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Preview Builder</title>
+        <title>Welcome to Preview Branch Deployer</title>
       </head>
       <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 0;">
@@ -166,7 +166,7 @@ class EmailService {
                 <!-- Banner -->
                 <tr>
                   <td style="background:#7c3aed;padding:32px 40px;text-align:center;">
-                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">Preview Builder</h1>
+                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">Preview Branch Deployer</h1>
                     <p style="margin:6px 0 0;color:#ddd6fe;font-size:15px;">Welcome, ${user.name}</p>
                   </td>
                 </tr>
@@ -205,7 +205,7 @@ class EmailService {
                         <td align="center">
                           <a href="${process.env.FRONTEND_URL}"
                              style="display:inline-block;padding:13px 32px;background:#7c3aed;color:#ffffff;text-decoration:none;border-radius:7px;font-size:15px;font-weight:600;">
-                            Go to Preview Builder
+                            Go to Preview Branch Deployer
                           </a>
                         </td>
                       </tr>
@@ -234,11 +234,11 @@ class EmailService {
       const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
       
       const mailOptions = {
-        from: process.env.FROM_EMAIL || '"Preview Builder" <noreply@thecubefactory.com>',
+        from: process.env.FROM_EMAIL || '"Preview Branch Deployer" <noreply@thecubefactory.com>',
         to: user.email,
-        subject: 'Password Reset Request - Preview Builder',
+        subject: 'Password Reset Request - Preview Branch Deployer',
         html: this.generatePasswordResetTemplate(user, resetUrl),
-        text: `Password Reset Request\n\nHi ${user.name || 'there'},\n\nYou requested a password reset. Click the link below to reset your password:\n${resetUrl}\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe Preview Builder Team`,
+        text: `Password Reset Request\n\nHi ${user.name || 'there'},\n\nYou requested a password reset. Click the link below to reset your password:\n${resetUrl}\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe Preview Branch Deployer Team`,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
@@ -269,7 +269,7 @@ class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Password Reset - Preview Builder</title>
+        <title>Password Reset - Preview Branch Deployer</title>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
           .container { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -284,7 +284,7 @@ class EmailService {
             <h1>Password Reset Request</h1>
           </div>
           <p>Hi ${user.name || 'there'},</p>
-          <p>You requested a password reset for your Preview Builder account.</p>
+          <p>You requested a password reset for your Preview Branch Deployer account.</p>
           <p style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" class="button">Reset Password</a>
           </p>
@@ -292,7 +292,7 @@ class EmailService {
           <p style="word-break: break-all; color: #7c3aed;">${resetUrl}</p>
           <p>If you didn't request this password reset, please ignore this email.</p>
           <div class="footer">
-            <p>Best regards,<br>The Preview Builder Team</p>
+            <p>Best regards,<br>The Preview Branch Deployer Team</p>
           </div>
         </div>
       </body>

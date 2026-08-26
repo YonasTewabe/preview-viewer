@@ -59,7 +59,7 @@ const ChangePassword = () => {
                 <FaCodeBranch style={{ fontSize: '22px', color: 'var(--app-primary)' }} />
               </div>
               <Title level={3} className="!mb-0 font-bold" style={{ color: 'var(--app-text)' }}>
-                Preview Builder
+                Preview Branch Deployer
               </Title>
             </div>
             <div className="mx-auto w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3">
