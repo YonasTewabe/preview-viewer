@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
 import { projectService } from "../services/projectService";
@@ -35,12 +35,7 @@ export const useProjects = () => {
   const [error, setError] = useState(null);
   const { message } = App.useApp();
 
-  // Fetch projects on component mount
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -52,7 +47,12 @@ export const useProjects = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [message]);
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const createProject = async (projectData) => {
     setLoading(true);

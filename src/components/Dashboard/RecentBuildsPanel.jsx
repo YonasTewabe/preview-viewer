@@ -21,7 +21,7 @@ function formatTimeAgo(dateString) {
 function initials(name) {
   const parts = String(name ?? "?")
     .trim()
-    .split(/[\s_\-]+/)
+    .split(/[\s_-]+/)
     .filter(Boolean);
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -199,7 +199,6 @@ export default function RecentBuildsPanel() {
 
   const builds     = data?.builds     ?? [];
   const total      = data?.total      ?? 0;
-  const totalPages = data?.totalPages ?? 1;
 
   // Debounce search: commit on Enter or after blur
   const handleSearch = useCallback((val) => {

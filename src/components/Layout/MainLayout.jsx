@@ -44,22 +44,6 @@ const MainLayout = ({ children }) => {
     navigate("/login");
   };
 
-  const userMenuItems = [
-    {
-      key: "profile",
-      icon: <IdCard size={15} />,
-      label: "My Profile",
-      onClick: () => navigate("/profile"),
-    },
-    {
-      key: "logout",
-      icon: <LogOut size={15} />,
-      label: "Log out",
-      onClick: handleLogout,
-      danger: true,
-    },
-  ];
-
   const profileDropdown = (
     <div
       className="w-64 overflow-hidden rounded-xl shadow-2xl"

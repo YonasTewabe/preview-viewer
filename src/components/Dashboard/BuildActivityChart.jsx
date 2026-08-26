@@ -86,7 +86,7 @@ function CustomTooltip({ active, payload, label, range }) {
 }
 
 // ─── Legend ────────────────────────────────────────────────────────────────────
-function ChartLegend({ summary, range }) {
+function ChartLegend({ summary }) {
   const inRange = summary?.total ?? 0;
 
   return (
@@ -120,7 +120,7 @@ function ChartLegend({ summary, range }) {
 }
 
 // ─── Summary stat pill ─────────────────────────────────────────────────────────
-function SummaryPill({ icon: Icon, label, value, iconClass, valueClass }) {
+function SummaryPill({ label, value, iconClass, valueClass }) {
   return (
     <div
       className="flex items-center gap-3 rounded-xl border px-4 py-3 flex-1 min-w-[130px]"
@@ -162,7 +162,6 @@ export default function BuildActivityChart() {
   const series = data?.series ?? [];
 
   // Avg builds per day — meaningful for any range
-  const nonEmptyDays = series.filter((d) => d.total > 0).length || 1;
   const avgPerDay = series.length > 0
     ? Math.round((summary.total / Math.max(series.length, 1)) * 10) / 10
     : 0;

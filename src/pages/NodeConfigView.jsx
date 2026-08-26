@@ -475,9 +475,10 @@ export default function NodeConfigView({
     placeholderData: keepPreviousData,
   });
 
-  const projectEnvVars = Array.isArray(projectEnvVarsResp?.env_vars)
-    ? projectEnvVarsResp.env_vars
-    : [];
+  const projectEnvVars = useMemo(
+    () => Array.isArray(projectEnvVarsResp?.env_vars) ? projectEnvVarsResp.env_vars : [],
+    [projectEnvVarsResp?.env_vars],
+  );
 
   /** Keys overridable for the profile currently selected in the UI (base vars table). */
   const allOverrideKeyPool = useMemo(() => {

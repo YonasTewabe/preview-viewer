@@ -47,24 +47,25 @@ const UserManagement = () => {
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
 
-  const allUsers = Array.isArray(usersData) ? usersData : [];
   const filteredUsers = useMemo(() => {
+    const users = Array.isArray(usersData) ? usersData : [];
     const q = searchText.trim().toLowerCase();
-    if (!q) return allUsers;
-    return allUsers.filter((u) => {
+    if (!q) return users;
+    return users.filter((u) => {
       const name = (u.name ?? "").toLowerCase();
       return (
         name.includes(q) ||
         (u.email && String(u.email).toLowerCase().includes(q))
       );
     });
-  }, [allUsers, searchText]);
+  }, [usersData, searchText]);
 
   const total = filteredUsers.length;
+  const { current: paginationCurrent, pageSize: paginationPageSize } = pagination;
   const tableRows = useMemo(() => {
-    const start = (pagination.current - 1) * pagination.pageSize;
-    return filteredUsers.slice(start, start + pagination.pageSize);
-  }, [filteredUsers, pagination.current, pagination.pageSize]);
+    const start = (paginationCurrent - 1) * paginationPageSize;
+    return filteredUsers.slice(start, start + paginationPageSize);
+  }, [filteredUsers, paginationCurrent, paginationPageSize]);
 
   const loading =
     isLoading ||
@@ -75,12 +76,12 @@ const UserManagement = () => {
   useEffect(() => {
     const pages = Math.max(
       1,
-      Math.ceil(filteredUsers.length / pagination.pageSize) || 1,
+      Math.ceil(filteredUsers.length / paginationPageSize) || 1,
     );
-    if (pagination.current > pages) {
+    if (paginationCurrent > pages) {
       setPagination((p) => ({ ...p, current: pages }));
     }
-  }, [filteredUsers.length, pagination.pageSize, pagination.current]);
+  }, [filteredUsers.length, paginationPageSize, paginationCurrent]);
 
   const applySearch = (value) => {
     setSearchText(value);

@@ -33,7 +33,6 @@ function FilterTab({ label, count, active, onClick }) {
 }
 
 const MyProjects = () => {
-  const { message } = App.useApp();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
 
   const [searchTerm,    setSearchTerm]    = useState("");
@@ -92,7 +91,6 @@ const MyProjects = () => {
   };
 
   const handleModalSubmit = async (formData) => {
-    try {
       if (editingProject?.id != null) {
         await updateProject({ id: editingProject.id, ...formData });
       } else {
@@ -100,9 +98,6 @@ const MyProjects = () => {
       }
       setIsModalOpen(false);
       setEditingProject(null);
-    } catch (err) {
-      throw err; // let the modal handle field errors
-    }
   };
 
   return (

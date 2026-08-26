@@ -1,5 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import { Op } from "sequelize";
 import { User } from "../models/index.js";
 import rateLimit from "express-rate-limit";
 import { body, validationResult } from "express-validator";

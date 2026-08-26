@@ -175,9 +175,10 @@ const ProjectEnvironments = () => {
     queryFn: () => projectService.listEnvProfiles(projectId),
   });
 
-  const profiles = Array.isArray(profilesPayload?.env_profiles)
-    ? profilesPayload.env_profiles
-    : [];
+  const profiles = useMemo(
+    () => Array.isArray(profilesPayload?.env_profiles) ? profilesPayload.env_profiles : [],
+    [profilesPayload?.env_profiles],
+  );
 
   const activeProfileLabel = useMemo(() => {
     if (activeProfileId == null) return null;

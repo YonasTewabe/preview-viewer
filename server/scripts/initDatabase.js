@@ -27,7 +27,6 @@ const initializeDatabase = async () => {
         password: '%TGBnhy6',
         must_change_password: true,
       });
-      console.log('✅ Default admin user created successfully.');
     }
 
     // Create regular user if not exists
@@ -44,7 +43,6 @@ const initializeDatabase = async () => {
         password: '%TGBnhy6',
         must_change_password: true,
       });
-      console.log('✅ Default regular user created successfully.');
     }
   } catch (error) {
     console.error('❌ Error creating default users:', error);
