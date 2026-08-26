@@ -155,7 +155,7 @@ const systemFields = [
   {
     key: "stale_preview_node_days",
     label: "Move preview node to trash after days",
-    placeholder: "5",
+    placeholder: "Default after 5 days",
     secret: false,
   },
   {

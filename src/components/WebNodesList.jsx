@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  Card,
-  Typography,
   Button,
   Spin,
   Empty,
@@ -17,35 +15,31 @@ import {
   DeleteOutlined,
   SearchOutlined,
   MoreOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
+import { GitBranch } from "lucide-react";
 
+// ─── Row-level actions (⋮ menu + delete confirmation popover) ─────────────────
 function NodeRowActions({ node, onEditNode, onDeleteNode, deletingThis }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const wrapRef = useRef(null);
 
   const deleteContent = (
-    <div style={{ maxWidth: 300 }}>
-      <div style={{ fontWeight: 600, marginBottom: 8 }}>
-        Delete this service?
+    <div style={{ maxWidth: 280 }}>
+      <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--app-text)" }}>
+        Delete this node?
       </div>
-      <p style={{ marginBottom: 12 }}>
+      <p style={{ marginBottom: 12, color: "var(--app-text-muted)", fontSize: 13 }}>
         Are you sure you want to delete <strong>{node.service_name}</strong>?
       </p>
-      <Space
-        style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
-      >
-        <Button size="small" onClick={() => setDeleteOpen(false)}>
-          Cancel
-        </Button>
+      <Space style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+        <Button size="small" onClick={() => setDeleteOpen(false)}>Cancel</Button>
         <Button
           size="small"
           type="primary"
           danger
-          onClick={() => {
-            setDeleteOpen(false);
-            void onDeleteNode(node);
-          }}
+          onClick={() => { setDeleteOpen(false); void onDeleteNode(node); }}
         >
           Delete
         </Button>
@@ -56,7 +50,7 @@ function NodeRowActions({ node, onEditNode, onDeleteNode, deletingThis }) {
   return (
     <span
       ref={wrapRef}
-      className="inline-flex shrink-0"
+      className="inline-flex shrink-0 items-center"
       onClick={(e) => e.stopPropagation()}
     >
       <Popover
@@ -100,10 +94,12 @@ function NodeRowActions({ node, onEditNode, onDeleteNode, deletingThis }) {
           >
             <Button
               type="text"
-              icon={<MoreOutlined />}
+              icon={<MoreOutlined style={{ color: "var(--app-text-muted)" }} />}
               aria-label="Node actions"
               disabled={deletingThis}
+              size="small"
               onClick={(e) => e.stopPropagation()}
+              style={{ background: "transparent", border: "none" }}
             />
           </Dropdown>
         </span>
@@ -112,9 +108,24 @@ function NodeRowActions({ node, onEditNode, onDeleteNode, deletingThis }) {
   );
 }
 
-const { Text } = Typography;
-const { Search } = Input;
+// ─── Small coloured icon matching the screenshot's purple "P" glyph ───────────
+function NodeIcon({ name }) {
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+      style={{
+        width: 50,
+        height: 50,
+        background: "rgba(99,102,241,0.15)",
+        color: "#818cf8",
+      }}
+    >
+      {String(name ?? "?")[0]?.toUpperCase() ?? "?"}
+    </span>
+  );
+}
 
+// ─── Main list component ───────────────────────────────────────────────────────
 export default function WebNodesList({
   nodesData,
   isLoadingNodes,
@@ -125,94 +136,64 @@ export default function WebNodesList({
   deletingNodeId = null,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const pageSize = 20;
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Reset to page 1 when data or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [nodesData?.data?.length, searchTerm]);
 
-  // Filter nodes based on search and filters
   const filteredNodes = useMemo(() => {
     if (!nodesData?.data) return [];
-
-    return nodesData.data.filter((node) => {
-      // Search filter
-      const matchesSearch =
-        !searchTerm ||
-        node.service_name?.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
-    });
+    return nodesData.data.filter((node) =>
+      !searchTerm ||
+      node.service_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [nodesData?.data, searchTerm]);
 
-  // Calculate paginated data from filtered nodes
   const paginatedNodes = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredNodes.slice(startIndex, endIndex);
-  }, [filteredNodes, currentPage, pageSize]);
-
-  const totalNodes = filteredNodes.length;
+    const start = (currentPage - 1) * pageSize;
+    return filteredNodes.slice(start, start + pageSize);
+  }, [filteredNodes, currentPage]);
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginBottom: "20px",
-        }}
-      >
+      {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
+      <div className="mb-4 flex items-center gap-3 flex-wrap">
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={onAddNode}
-          size="large"
-          style={{
-            flexShrink: 0,
-            backgroundColor: "#3b82f6",
-            borderColor: "#3b82f6",
-          }}
+          style={{ flexShrink: 0, backgroundColor: "#6366f1", borderColor: "#6366f1" }}
         >
           Add Node
         </Button>
-        <Search
+        <Input
           placeholder="Search nodes by name"
           allowClear
-          size="large"
-          style={{ flex: 1, minWidth: "200px" }}
+          prefix={<SearchOutlined style={{ color: "var(--app-text-muted)" }} />}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onSearch={setSearchTerm}
-          prefix={<SearchOutlined />}
+          style={{
+            flex: 1,
+            minWidth: 200,
+            background: "var(--app-surface)",
+            borderColor: "var(--app-border)",
+            color: "var(--app-text)",
+          }}
         />
       </div>
 
+      {/* ── Body ────────────────────────────────────────────────────────────── */}
       {isLoadingNodes ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "400px",
-          }}
-        >
-          <Spin size="large" tip="Loading nodes..." />
+        <div className="flex h-48 items-center justify-center">
+          <Spin size="large" />
         </div>
       ) : filteredNodes.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "60px 20px",
-            color: "#64748b",
-          }}
-        >
+        <div className="flex h-48 items-center justify-center">
           <Empty
             description={
-                  nodesData?.data?.length === 0
+              nodesData?.data?.length === 0
                 ? 'No nodes yet. Use "Add Node" to create one.'
                 : "No nodes match your search."
             }
@@ -220,139 +201,97 @@ export default function WebNodesList({
         </div>
       ) : (
         <>
+          {/* ── Node rows ─────────────────────────────────────────────────── */}
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            className="overflow-hidden rounded-xl"
+            style={{ border: "1px solid var(--app-border)" }}
           >
-            {paginatedNodes.map((node) => {
+            {paginatedNodes.map((node, idx) => {
               const deletingThis =
                 deletingNodeId != null &&
                 String(node.id) === String(deletingNodeId);
+              const isLast = idx === paginatedNodes.length - 1;
 
               return (
-                <Card
+                <div
                   key={node.id}
-                  className="shadow-sm relative"
-                  onClick={() => {
-                    if (!deletingThis) onNodeClick(node);
+                  className="relative flex items-center gap-4 px-5 py-4 transition-colors"
+                  style={{
+                    background: "var(--app-card, var(--app-bg))",
+                    borderBottom: isLast ? "none" : "1px solid var(--app-border)",
+                    cursor: deletingThis ? "default" : "pointer",
+                    opacity: deletingThis ? 0.6 : 1,
                   }}
-                  hoverable={!deletingThis}
+                  onClick={() => { if (!deletingThis) onNodeClick(node); }}
                 >
-                  {deletingThis ? (
-                    <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-[inherit] bg-white/70">
-                      <Spin tip="Deleting…" />
-                    </div>
-                  ) : null}
-                  {/* Name + branch fields */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: "16px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
+                  {/* Deleting overlay */}
+                  {deletingThis && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[inherit]"
+                      style={{ background: "var(--app-surface, rgba(0,0,0,0.15))" }}
                     >
-                      <div>
-                        <Text
-                          strong
-                          style={{
-                            fontSize: "12px",
-                            color: "#64748b",
-                            display: "block",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          Node Name:
-                        </Text>
-                        <Input
-                          value={
-                            node.service_name ? String(node.service_name) : "—"
-                          }
-                          readOnly
-                          style={{
-                            backgroundColor: "#f8fafc",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: "6px",
-                            fontSize: "12px",
-                            color: "#64748b",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <Text
-                          strong
-                          style={{
-                            fontSize: "12px",
-                            color: "#64748b",
-                            display: "block",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          Branch:
-                        </Text>
-                        <Input
-                          value={
-                            node.branch_name ? String(node.branch_name) : "—"
-                          }
-                          readOnly
-                          style={{
-                            backgroundColor: "#f8fafc",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: "6px",
-                            fontSize: "12px",
-                            color: "#64748b",
-                          }}
-                        />
-                      </div>
+                      <Spin size="small" />
                     </div>
+                  )}
+
+                  {/* Icon */}
+                  <NodeIcon name={node.service_name} />
+
+                  {/* Name + branch */}
+                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <span
+                      className="truncate text-sm font-semibold leading-tight"
+                      style={{ color: "var(--app-text)", fontSize: 15 }}
+                    >
+                      {node.service_name || "—"}
+                    </span>
+                    {node.branch_name && (
+                      <span
+                        className="inline-flex items-center gap-1 self-start rounded border px-2 py-0.5 font-mono text-xs"
+                        style={{
+                          borderColor: "var(--app-border)",
+                          color: "var(--app-text-muted)",
+                          background: "var(--app-surface)",
+                          fontSize: 12,
+                        }}
+                      >
+                        <GitBranch size={11} className="shrink-0" />
+                        {node.branch_name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Actions + chevron */}
+                  <div
+                    className="flex shrink-0 items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <NodeRowActions
                       node={node}
                       onEditNode={onEditNode}
                       onDeleteNode={onDeleteNode}
                       deletingThis={deletingThis}
                     />
+                    <RightOutlined
+                      style={{ fontSize: 11, color: "var(--app-text-muted)" }}
+                      onClick={(e) => { e.stopPropagation(); if (!deletingThis) onNodeClick(node); }}
+                    />
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
 
-          {totalNodes > pageSize && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "24px",
-                paddingTop: "16px",
-                borderTop: "1px solid #e2e8f0",
-              }}
-            >
+          {/* ── Pagination ──────────────────────────────────────────────────── */}
+          {filteredNodes.length > pageSize && (
+            <div className="mt-4 flex justify-center">
               <Pagination
                 current={currentPage}
-                total={totalNodes}
+                total={filteredNodes.length}
                 pageSize={pageSize}
-                showSizeChanger
-                showQuickJumper
-                showTotal={(total, range) =>
-                  `${range[0]}-${range[1]} of ${total} nodes`
-                }
-                pageSizeOptions={["5", "10", "20", "50"]}
-                onChange={(page, size) => {
-                  setCurrentPage(page);
-                  setPageSize(size);
-                }}
-                onShowSizeChange={(current, size) => {
-                  setCurrentPage(1);
-                  setPageSize(size);
-                }}
+                onChange={(page) => setCurrentPage(page)}
+                size="small"
+                showSizeChanger={false}
+                showTotal={(total, range) => `${range[0]}–${range[1]} of ${total}`}
               />
             </div>
           )}

@@ -161,9 +161,16 @@ export default function BuildActivityChart() {
   };
   const series = data?.series ?? [];
 
-  // Avg builds per day — meaningful for any range
+  // All pills are scoped to the selected range.
+  // Use successful + failed as the "real" execution count (excludes building/other).
+  const rangeTotal = summary.successful + summary.failed;
+  const successRate = rangeTotal > 0
+    ? Math.round((summary.successful / rangeTotal) * 1000) / 10
+    : 0;
+
+  // Avg builds per day across the buckets in the range
   const avgPerDay = series.length > 0
-    ? Math.round((summary.total / Math.max(series.length, 1)) * 10) / 10
+    ? Math.round((rangeTotal / Math.max(series.length, 1)) * 10) / 10
     : 0;
 
   // Determine max y value for a clean ceiling
@@ -237,7 +244,7 @@ export default function BuildActivityChart() {
         <SummaryPill
           icon={CheckCircle}
           label="Success Rate"
-          value={`${summary.successRate}%`}
+          value={`${successRate}%`}
           iconClass="bg-emerald-500/15 text-emerald-400"
           valueClass="text-emerald-400"
         />
@@ -251,7 +258,7 @@ export default function BuildActivityChart() {
         <SummaryPill
           icon={RefreshCw}
           label="Total Executions"
-          value={summary.total}
+          value={rangeTotal}
           iconClass="bg-indigo-500/15 text-indigo-400"
           valueClass="text-indigo-400"
         />

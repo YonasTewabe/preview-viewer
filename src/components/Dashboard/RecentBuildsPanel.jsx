@@ -70,19 +70,9 @@ function BuildCard({ build, jenkinsBaseUrl, jenkinsJobPreview }) {
 
    function getJenkinsConsoleUrl() {
     if (!build.jenkins_build_number) return null;
-
-    let jobName = jenkinsJobPreview || null;
-
-    // Try to extract job name from the stored jenkins_job_url on the node
-    if (build.jenkins_job_url) {
-      const match = build.jenkins_job_url.match(/\/job\/([^/]+)/);
-      if (match) jobName = match[1];
-    }
-
-    if (!jobName || !jenkinsBaseUrl) return null;
-
+    if (!jenkinsJobPreview || !jenkinsBaseUrl) return null;
     const base = jenkinsBaseUrl.replace(/\/+$/, "");
-    return `${base}/job/${jobName}/${build.jenkins_build_number}/console`;
+    return `${base}/job/${jenkinsJobPreview}/${build.jenkins_build_number}/console`;
   }
 
   const jenkinsConsoleUrl = getJenkinsConsoleUrl();
@@ -134,19 +124,6 @@ function BuildCard({ build, jenkinsBaseUrl, jenkinsJobPreview }) {
         >
           {build.project_name}
         </span>
-        {/* Build number */}
-        {build.build_number != null && (
-          <span
-            className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono"
-            style={{
-              borderColor: "var(--app-border)",
-              color: "var(--app-text-muted)",
-              background: "var(--app-surface)",
-            }}
-          >
-            #{build.build_number}
-          </span>
-        )}
         {/* Jenkins build number — links to console log */}
         {build.jenkins_build_number != null && (
           jenkinsConsoleUrl ? (
@@ -178,6 +155,25 @@ function BuildCard({ build, jenkinsBaseUrl, jenkinsJobPreview }) {
               Jenkins {build.jenkins_build_number}
             </span>
           )
+        )}
+        {/* Preview link — only shown for passed builds */}
+        {build.status === "success" && build.preview_link && (
+          <a
+            href={build.preview_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono transition-colors hover:border-emerald-500/50 hover:text-emerald-400"
+            style={{
+              borderColor: "var(--app-border)",
+              color: "var(--app-text-muted)",
+              background: "var(--app-surface)",
+              textDecoration: "none",
+            }}
+          >
+            <ExternalLink size={9} className="shrink-0" />
+            Preview
+          </a>
         )}
       </div>
 

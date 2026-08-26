@@ -43,6 +43,7 @@ import {
 import { jenkinsPreviewTag } from "../utils/projectServiceKind";
 import { useAuth } from "../contexts/AuthContext";
 import { useJenkins } from "../hooks/useJenkins";
+import { useJenkinsConfig } from "../hooks/useJenkinsConfig";
 import {
   keepPreviousData,
   useQuery,
@@ -335,6 +336,10 @@ export default function NodeConfigView({
     triggerJenkinsFrontBuild,
     handleBuildModalCancel,
   } = useJenkins();
+
+  const { data: jenkinsConfig } = useJenkinsConfig();
+  const jenkinsBaseUrl  = jenkinsConfig?.baseUrl  ?? null;
+  const jenkinsJobPreview = jenkinsConfig?.jobPreview ?? null;
 
   const projectEnvPidRaw = routeProjectId ?? selectedNode?.project_id;
   const projectEnvPid =
@@ -1488,12 +1493,36 @@ export default function NodeConfigView({
                 columns={[
                   {
                     title: "Node build #", dataIndex: "build_number", key: "build_number", width: 200,
-                    render: (n, row) => (
-                      <span>
-                        <span style={{ fontFamily: "monospace" }}>{n}</span>
-                        {row.jenkins_build_number != null && <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>(Jenkins {row.jenkins_build_number})</Text>}
-                      </span>
-                    ),
+                    render: (n, row) => {
+                      // Build Jenkins console URL using Preview Job Name from settings
+                      const consoleUrl =
+                        row.jenkins_build_number != null && jenkinsJobPreview && jenkinsBaseUrl
+                          ? `${jenkinsBaseUrl.replace(/\/+$/, "")}/job/${jenkinsJobPreview}/${row.jenkins_build_number}/console`
+                          : null;
+
+                      return (
+                        <span>
+                          <span style={{ fontFamily: "monospace" }}>{n}</span>
+                          {row.jenkins_build_number != null && (
+                            consoleUrl ? (
+                              <a
+                                href={consoleUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ marginLeft: 8, fontSize: 12 }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Jenkins #{row.jenkins_build_number}
+                              </a>
+                            ) : (
+                              <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                                Jenkins #{row.jenkins_build_number}
+                              </Text>
+                            )
+                          )}
+                        </span>
+                      );
+                    },
                   },
                   { title: "Status", dataIndex: "status", key: "status", width: 120, render: (s) => buildHistoryStatusTag(s ?? "success") },
                   { title: "Build time", dataIndex: "built_at", key: "built_at", render: (d) => d ? dayjs(d).format("YYYY-MM-DD HH:mm:ss") : "—" },
