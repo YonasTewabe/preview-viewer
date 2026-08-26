@@ -26,7 +26,7 @@ const previewServicesClient = {
     api.get(PREVIEW_SERVICES_PATH, {
       params: { projectId, role: "api_service", includeBranches: true },
     }),
-  create: (data) => api.post(PREVIEW_SERVICES_PATH, { data }),
+  create: (data) => api.post(PREVIEW_SERVICES_PATH, { data: { role: "api_service", ...data } }),
   update: (id, data) => api.patch(`${PREVIEW_SERVICES_PATH}/${id}`, data),
   deleteAll: async () => {
     const res = await api.get(PREVIEW_SERVICES_PATH, {

@@ -23,7 +23,7 @@ const previewNodesClient = {
     api.get(PREVIEW_NODES_PATH, {
       params: { projectId, role: "frontend" },
     }),
-  create: (data) => api.post(PREVIEW_NODES_PATH, { data }),
+  create: (data) => api.post(PREVIEW_NODES_PATH, { data: { role: "frontend", ...data } }),
   update: (id, data) => api.patch(`${PREVIEW_NODES_PATH}/${id}`, data),
   deleteAll: async () => {
     const res = await api.get(PREVIEW_NODES_PATH, { params: { role: "frontend" } });

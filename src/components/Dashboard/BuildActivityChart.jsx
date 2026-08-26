@@ -120,7 +120,7 @@ function ChartLegend({ summary }) {
 }
 
 // ─── Summary stat pill ─────────────────────────────────────────────────────────
-function SummaryPill({ label, value, iconClass, valueClass }) {
+function SummaryPill({ label, value, icon: Icon, iconClass, valueClass }) {
   return (
     <div
       className="flex items-center gap-3 rounded-xl border px-4 py-3 flex-1 min-w-[130px]"
@@ -132,7 +132,7 @@ function SummaryPill({ label, value, iconClass, valueClass }) {
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
       >
-        <Icon size={18} />
+        {Icon && <Icon size={18} />}
       </span>
       <div className="min-w-0">
         <p

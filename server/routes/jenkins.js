@@ -337,6 +337,24 @@ router.get("/test", (req, res) => {
   });
 });
 
+/**
+ * GET /api/jenkins/public-config
+ * Returns non-secret Jenkins settings needed by the UI (base URL + preview job name).
+ * No auth required — these values are not secrets.
+ */
+router.get("/public-config", async (_req, res) => {
+  try {
+    const config = await configurationService.getJenkinsConfig();
+    res.json({
+      baseUrl: config.baseUrl || null,
+      jobPreview: config.jobPreview || null,
+    });
+  } catch (error) {
+    console.error("Failed to load Jenkins public config:", error);
+    res.status(500).json({ error: "Failed to load Jenkins config" });
+  }
+});
+
 // Test Jenkins connectivity
 router.get("/test-connection", async (req, res) => {
   try {

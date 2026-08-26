@@ -209,7 +209,7 @@ router.get("/recent-builds", async (req, res) => {
           as: "node",
           required: true,
           where: { is_deleted: false },
-          attributes: ["id", "service_name", "branch_name", "project_id", "preview_link"],
+          attributes: ["id", "service_name", "branch_name", "project_id", "preview_link", "jenkins_job_url"],
           include: [
             {
               model: Project,
@@ -247,6 +247,7 @@ router.get("/recent-builds", async (req, res) => {
         project_id:           plain.node?.project_id ?? null,
         project_name:         plain.node?.project?.name ?? "Unknown project",
         preview_link:         plain.node?.preview_link ?? null,
+        jenkins_job_url:      plain.node?.jenkins_job_url ?? null,
       };
     });
 

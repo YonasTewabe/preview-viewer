@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Pagination, Spin } from "antd";
-import { GitBranch, Search, ArrowRight } from "lucide-react";
+import { GitBranch, Search, ArrowRight, ExternalLink } from "lucide-react";
 import { useRecentBuilds } from "../../hooks/useRecentBuilds";
+import { useJenkinsConfig } from "../../hooks/useJenkinsConfig";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,11 +62,30 @@ function StatusBadge({ status }) {
 }
 
 // ─── Single build card ─────────────────────────────────────────────────────────
-function BuildCard({ build }) {
+function BuildCard({ build, jenkinsBaseUrl, jenkinsJobPreview }) {
   const canLink = build.project_id && build.node_id;
   const detailPath = canLink
     ? `/projects/${build.project_id}/nodes/${build.node_id}`
     : null;
+
+   function getJenkinsConsoleUrl() {
+    if (!build.jenkins_build_number) return null;
+
+    let jobName = jenkinsJobPreview || null;
+
+    // Try to extract job name from the stored jenkins_job_url on the node
+    if (build.jenkins_job_url) {
+      const match = build.jenkins_job_url.match(/\/job\/([^/]+)/);
+      if (match) jobName = match[1];
+    }
+
+    if (!jobName || !jenkinsBaseUrl) return null;
+
+    const base = jenkinsBaseUrl.replace(/\/+$/, "");
+    return `${base}/job/${jobName}/${build.jenkins_build_number}/console`;
+  }
+
+  const jenkinsConsoleUrl = getJenkinsConsoleUrl();
 
   const inner = (
     <div className="flex flex-col gap-3 h-full">
@@ -126,6 +146,38 @@ function BuildCard({ build }) {
           >
             #{build.build_number}
           </span>
+        )}
+        {/* Jenkins build number — links to console log */}
+        {build.jenkins_build_number != null && (
+          jenkinsConsoleUrl ? (
+            <a
+              href={jenkinsConsoleUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono transition-colors hover:border-blue-500/50 hover:text-blue-400"
+              style={{
+                borderColor: "var(--app-border)",
+                color: "var(--app-text-muted)",
+                background: "var(--app-surface)",
+                textDecoration: "none",
+              }}
+            >
+              <ExternalLink size={9} className="shrink-0" />
+              Jenkins {build.jenkins_build_number}
+            </a>
+          ) : (
+            <span
+              className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono"
+              style={{
+                borderColor: "var(--app-border)",
+                color: "var(--app-text-muted)",
+                background: "var(--app-surface)",
+              }}
+            >
+              Jenkins {build.jenkins_build_number}
+            </span>
+          )
         )}
       </div>
 
@@ -196,9 +248,12 @@ export default function RecentBuildsPanel() {
   const [inputQ, setInputQ] = useState("");
 
   const { data, isLoading, isError } = useRecentBuilds({ page, limit: 6, status, q });
+  const { data: jenkinsConfig } = useJenkinsConfig();
 
   const builds     = data?.builds     ?? [];
   const total      = data?.total      ?? 0;
+  const jenkinsBaseUrl  = jenkinsConfig?.baseUrl   ?? null;
+  const jenkinsJobPreview = jenkinsConfig?.jobPreview ?? null;
 
   // Debounce search: commit on Enter or after blur
   const handleSearch = useCallback((val) => {
@@ -295,7 +350,7 @@ export default function RecentBuildsPanel() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {builds.map((build) => (
-              <BuildCard key={build.id} build={build} />
+              <BuildCard key={build.id} build={build} jenkinsBaseUrl={jenkinsBaseUrl} jenkinsJobPreview={jenkinsJobPreview} />
             ))}
           </div>
         )}
